@@ -46,6 +46,8 @@ class Parser(object):
         elif(self.curr().lex() == "("):
             self.match('(')
             expr = self.parseExpr()
+            self.match(")")
+
 
             return NodeFact(expr)
         else:
@@ -59,9 +61,6 @@ class Parser(object):
         fact = self.parseFact()
         mulop = self.curr().lex()
         
-        if mulop == ")":
-            self.match(")")
-
         if mulop != "*":
             return NodeTerm(fact, None, None)
         
@@ -75,8 +74,6 @@ class Parser(object):
         term = self.parseTerm()
         addop = self.curr().lex()
 
-        if(addop == ")"):
-            self.match(")")
         if addop != "+":
             return NodeExpr(term, None, None)
         
