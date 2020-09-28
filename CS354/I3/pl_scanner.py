@@ -15,7 +15,7 @@ class Scanner(object):
     letters = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     legits = set("_").union(digits).union(letters)
     #symbols = set("@[\]^_`!\"#$%&',)(*+-./:;<=>?")
-    operators = {}
+    operators = {"=", ";", "(", ")" }
     keywords = {"wr"}
     token = ""
     lexeme = ""
@@ -61,10 +61,24 @@ class Scanner(object):
         self.token = Token("id", retrievedToken)
 
 
-    def nextOp(self):
-       retrievedToken = self.program[self.pos]
-       self.token = Token(retrievedToken, retrievedToken)
-       self.pos +=1
+    def nextOp(self):           
+        curr = self.program[self.pos]
+        startPos = self.pos
+        if curr in self.operators:
+           self.many(self.operators)
+           retrievedToken = self.program[startPos:self.pos]
+           self.token = Token(retrievedToken, retrievedToken)
+           return
+
+        retrievedToken = self.program[startPos]
+        self.token = Token(retrievedToken, retrievedToken)
+        self.pos += 1
+           
+        
+    
+
+        
+
 
     def next(self):
         """ generated source for method next """

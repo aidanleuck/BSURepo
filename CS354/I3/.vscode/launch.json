@@ -10,7 +10,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["x=(2+5)"],
+            "args": ["x= (2+5)"],
             "console": "integratedTerminal"
         }
     ]
