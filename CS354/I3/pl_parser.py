@@ -4,11 +4,14 @@ from pl_syntaxexception import SyntaxException
 from pl_node import *
 from pl_scanner import Scanner
 from pl_token import Token
+from pl_environment import Environment
+
 
 class Parser(object):
     """ generated source for class Parser """
     def __init__(self):
         self.scanner = None
+        self.env = Environment()
 
     def match(self, s):
         """ generated source for method match """
@@ -38,60 +41,93 @@ class Parser(object):
         expr = self.parseExpr()
     
         return NodeAssn(id, expr) 
+    
     def parseFact(self):
-        if(self.curr().lex() == "id"):
+        #If a fact is an id then match the token as an id and return the node fact with an id
+        if(self.curr().tok() == "id"):
             id = self.curr().lex()
             self.match('id')
-            return NodeFact(id)
-        elif(self.curr().lex() == "("):
+            return NodeFact(id, None, None)
+        # If we have a ( then we have an expression
+        elif("(" in self.curr().lex()):
+            
             self.match('(')
             expr = self.parseExpr()
-            self.match(")")
+            self.match(')')
 
-
-            return NodeFact(expr)
+            
+            return NodeFact(None, None, expr)
+        # If not a ( or expr then expect a num 
         else:
             num = self.curr().lex()
             self.match('num')
-
-            return NodeFact(num)
-
-
-    def parseTerm(self):
-        fact = self.parseFact()
-        mulop = self.curr().lex()
+            return NodeFact(None, num, None)
         
-        if mulop != "*":
-            return NodeTerm(fact, None, None)
-        
-        self.match("*")
-        term = self.parseTerm()
-        term.append(NodeTerm(term, None, fact))
-
-        return NodeTerm(fact, None, term)
-
-    def parseExpr(self):
-        term = self.parseTerm()
+    # returns appropriate Addop Node
+    def parseAddOp(self):
         addop = self.curr().lex()
 
-        if addop != "+":
+        if(addop == "+"):
+            self.match("+")
+            return NodeAddOp(addop)
+        elif(addop == "-"):
+            self.match("-")
+            return NodeAddOp(addop)
+        else:
+            return NodeAddOp(None)
+    # Returns appropriate mulop node
+    def parseMulOp(self):
+        mulop = self.curr().lex()
+        if(mulop == "*"):
+            self.match("*")
+            return NodeMulOp(mulop)
+        elif(mulop == "/"):
+            self.match("/")
+            return NodeMulOp(mulop)
+        else:
+            return NodeMulOp(None)
+    def parseTerm(self):
+        # Parses fact
+        fact = self.parseFact()
+        # Parses mulop
+        mulop = self.parseMulOp()
+        # If we don't have a mulop then return term node with just fact
+        if mulop.mulop is None:
+            return NodeTerm(fact, None, None)
+        # If we have a mulop then parse a term and append the fact and mulop onto the term node
+        term = self.parseTerm()
+        term.append(NodeTerm(fact, mulop, None))
+
+        return term
+    
+    def parseExpr(self):
+        # Parses term
+        term = self.parseTerm()
+        # parses addop
+        addop = self.parseAddOp()
+        # If we don't have an addop then return a node with just a term
+        if addop.addop is None:
             return NodeExpr(term, None, None)
-        
-        self.match("+")
+        # If we do have addop then parse an expression and add a term to the node
         expr = self.parseExpr()
         expr.append(NodeExpr(term, addop, None))
-        return NodeExpr(term, None, expr)
+        return expr
+    
     def parseWr(self):
+        # Parses an expression and returns a wr node with an expression inside
         expr = self.parseExpr()
         return NodeWr(expr)
-
+    
     def parseStmt(self):
-        if self.curr().lexeme == "wr":
+        # Checks if the current token is a wr keyword if so parse a wr node
+        if self.curr().tok() == "wr":
+            self.match("wr")
             wr = self.parseWr()
-            return NodeStmt(wr)
+            return NodeStmt(None, wr)
+        # If not a wr then must be assn node
         else:
             assn = self.parseAssn() # Parses an assignment 
-            return NodeStmt(assn)
+            return NodeStmt(assn, None)
 
         
 

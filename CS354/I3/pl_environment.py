@@ -5,16 +5,16 @@
 from pl_evalexception import EvalException
 
 class Environment(object):
-    """ generated source for class Environment """
-
     def __init__(self):
-        """ generated source for method __init__ """
-        pass
-
+        self.environmentDict = {} # Dictionary to store environment variables
+        
+    # Puts key = var and val = value into dicitonary
     def put(self, var, val):
-        """ generated source for method put """
-        pass
-
+        self.environmentDict[var] = val
+    # Gets a value in dictionary, if that value is not in dictionary throw EvalException
     def get(self, pos, var):
-        """ generated source for method get """
-        pass
+        if(var not in self.environmentDict):
+            raise EvalException(pos, "There is no instance of " + var + " in the environment")
+        val = self.environmentDict[var]
+        
+        return val

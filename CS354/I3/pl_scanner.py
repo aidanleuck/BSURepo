@@ -56,23 +56,26 @@ class Scanner(object):
         startPos = self.pos
 
         self.many(self.legits)
-
+        # Gets a token
         retrievedToken = self.program[startPos:self.pos]
-        self.token = Token("id", retrievedToken)
+        # Checks if the token is a keyword
+        if(retrievedToken in self.keywords):
+            self.token = Token(retrievedToken, retrievedToken)
+        else:
+            self.token = Token("id", retrievedToken)
 
-
+    # Gets an operator symbol
     def nextOp(self):           
-        curr = self.program[self.pos]
-        startPos = self.pos
-        if curr in self.operators:
-           self.many(self.operators)
-           retrievedToken = self.program[startPos:self.pos]
-           self.token = Token(retrievedToken, retrievedToken)
-           return
-
-        retrievedToken = self.program[startPos]
-        self.token = Token(retrievedToken, retrievedToken)
-        self.pos += 1
+        old = self.pos
+        self.pos = old + 2
+        if not self.done():
+            self.lexeme = self.program[old: self.pos]
+            if self.lexeme in self.operators:
+                self.token = Token(self.lexeme)
+                return
+        self.pos = old + 1
+        self.lexeme = self.program[old: self.pos]
+        self.token = Token(self.lexeme)
            
         
     

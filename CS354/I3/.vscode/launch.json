@@ -10,7 +10,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["x= (2+5)"],
+            "args": ["x=5; wr ((10+2) - (x * 3)) / 3"],
             "console": "integratedTerminal"
         }
     ]

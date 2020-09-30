@@ -6,6 +6,7 @@ from pl_parser import Parser
 from pl_syntaxexception import SyntaxException
 from pl_environment import Environment
 
+
 class Interpreter(object):
     """ generated source for class Interpreter """
     @classmethod
@@ -16,8 +17,7 @@ class Interpreter(object):
         for prog in args:
             try:
                 node = parser.parse(prog)
-                print(node)
-                #node.eval(env)
+                node.eval(env)
             except SyntaxException as e:
                 print(e)
 
