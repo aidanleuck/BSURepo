@@ -5,10 +5,11 @@ public class EthicalOracle {
 	private boolean hypothetical;
 	private HashMap<String, Integer> benefitList;
 	private HashMap<String, Integer> negativeList;
-	
+	private boolean hasUniversalRule;
 	public EthicalOracle() {
 		benefitList = new HashMap<String, Integer>();
 		negativeList = new HashMap<String, Integer>();
+		hasUniversalRule = false;
 		run();
 	}
 	
@@ -30,7 +31,8 @@ public class EthicalOracle {
 		boolean ethical = isEthical(inputScanner, sentenceCreation);
 		
 		if(ethical) {
-			boolean actAnalysis = actUtil(inputScanner);
+			int actAnalysis = actUtil(inputScanner);
+			int kantianism = kantianism(inputScanner, sentenceCreation);
 		}
 		else {
 			System.out.println("Since this problem is not ethical the oracle can not provide an analysis.");
@@ -46,77 +48,135 @@ public class EthicalOracle {
 		}
 		return total;
 	}
-	private int scanUtil(Scanner s, String line, HashMap<String, Integer> h) {
+	private void scanUtil(Scanner s, String line, HashMap<String, Integer> h) {
 		Scanner utilScanner = new Scanner(line);
-		utilScanner.useDelimiter(",");
-		while(utilScanner.hasNext()) {
-			String token = utilScanner.next();
-			Scanner tokenScanner = new Scanner(token);
-			tokenScanner.useDelimiter(":");
-			String benefitItem = tokenScanner.next();
-			String value = tokenScanner.next();
-			value = value.trim();
-			if(isInteger(value)) {
+		utilScanner.useDelimiter(":");
+		if(line.matches("[\\w\\s]+:\\s*\\d+")) {	
+			if(utilScanner.hasNext()) {
+				String benefitItem = utilScanner.next();
+				String value = utilScanner.next();
+				value = value.trim();
+			
 				int valueInt = Integer.parseInt(value);
 				h.put(benefitItem, valueInt);
-				tokenScanner.close();
-				utilScanner.close();
-				
-				int total = evaluate(h);
-				return total;
-			
-			}
-			else {
-				System.out.println("You did not enter valid input");
-				scanUtil(s, line, h);
-			}
 		
+			}
 		
 		}
-		System.out.println("You did not enter valid input, please try again");
-		scanUtil(s, line, h);
+		else {
+			System.out.println("You did not enter with proper format (format (name: value) exclude parentheses) value must be an integer");
+			line = s.nextLine();
+			scanUtil(s, line, h);
+		}
 		
-		
-	
-	
 	}
-	private boolean actUtil(Scanner s) {
+	private int actUtil(Scanner s) {
 		
 		System.out.println("We will now determine the act utilitarian analysis");
-		System.out.println("Please enter a list of benefits separated by , (value must be numeric) "
-				+ "\n(Ex: Saves snowy owls: 45, Helps family: 3 etc... ");
-		String line = s.nextLine();
 		
-		int benefit = scanUtil(s, line, benefitList);
-		System.out.println("Please enter a list of consequences separated by , (value must be numeric) "
-				+ "\n(Ex: Saves snowy owls: 45, Helps family: 3 etc...) ");
-		String line2 = s.nextLine();
-		int cost = scanUtil(s, line2, negativeList);
+		boolean benefitBool = false;
+		while(!benefitBool) {
+			System.out.println("Please enter a benefit (format (name: value) exclude parentheses) value must be an integer");
+			String line = s.nextLine();
+			scanUtil(s, line, benefitList);
+			
+			System.out.println("Would you like to add another benefit? y for yes n for no");
+			String ans = verifyAnswer(new String[] {"y", "Y", "n", "N"}, s);
+			
+			if(ans.equals("N") || ans.equals("n")) {
+				benefitBool = true;
+			}
+		}
+		boolean negative = false;
 		
-		if(benefit > cost) {
-			return true;
+		while(!negative) {
+			System.out.println("Please enter a consequence (format (name: value) exclude parentheses) value must be an integer");
+			String line2 = s.nextLine();
+			scanUtil(s, line2, negativeList);
+			
+			System.out.println("Would you like to add another consequence?, y for yes n for no");
+			String ans = verifyAnswer(new String[] {"y", "Y", "n", "N"}, s);
+			
+			if(ans.equals("N") || ans.equals("n")) {
+				negative = true;
+			}
+			
+			
 		}
 		
-			return false;
+		int benefit = evaluate(benefitList);
+		int cost = evaluate(negativeList);
+		
+		if(benefit >= cost) {
+			System.out.println("Act Utilitarianism says that the scenario is ethical");
+			return 1;
+		}
+			System.out.println("Act Utilitarianism says that the scenario is not ethical");
+			return 0;
 	
 	}
-	private static boolean isInteger(String s) {
-		s = s.trim();
-		return s.matches("-?\\d+");
+	private int kantianism(Scanner s, SentenceCreator sent) {
+		int kantCount = 0;
+		
+		System.out.println("\nWe will now perform a Kantian analysis");
+		
+		String query = sent.createSentence(new String[] {"hypothetically, is there", "was there"}, "a universal rule" ,"", 
+				"that could have been applied? y for yes n for no");
+		
+		boolean answer = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
+		hasUniversalRule = answer;
+		
+		if(answer) {
+			
+			query = "Given this universal rule, would it be okay if everyone was "
+					+ "allowed to break this rule? y for yes n for no";
+			answer = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
+			if(!answer) {
+				kantCount +=1;
+			}
 		}
+		
+		
+		query  = "Are you treating yourself or others as means to an end, "
+				+ "rather than ends in themselves? y for yes n for no ";
+		answer = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
+		if(answer) {
+			kantCount +=1;
+		}
+		
+		if(kantCount >= 1) {
+			System.out.println("According to Kantianism the scenario is unethical");
+			return 0;
+		}
+		System.out.println("According to Kantianism the scenario is ethical");
+		return 1;
+		
+		
+		
+		
+	}
+	private int ruleU(Scanner s, SentenceCreator sent) {
+		int ruleUCount = 0;
+		System.out.println("We will now calculate the Rule Utilitarian analysis");
+		if(hasUniversalRule) {
+			String query = sent.createSentence(new String[] {"hypothetically, would, would"}, "the universal rule given last time", "", 
+					"lead to the greatest happiness for the greatest number? y for yes n for no");
+			boolean answer = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
+		}
+	}
 	
 	private boolean isEthical(Scanner s, SentenceCreator sent) {
 		String query = sent.createSentence(new String[] {"would", "was"}, "the action", 
 				"be ", "voluntary? enter y for yes n for no");
-		boolean comparedAns1 = compareAnswer(query, new String[] {"y", "n"}, s);
+		boolean comparedAns1 = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
 		
 	    query = sent.createSentence(new String[] {"would", "was"}, "the action", 
 				"be ", "on a moral agent? enter y for yes n for no");
-		boolean comparedAns2 = compareAnswer(query, new String[] {"y", "n"}, s);
+		boolean comparedAns2 = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
 		
 		query = sent.createSentence(new String[] {"would", "did"}, "the action", 
 				"", "have an effect on society? enter y for yes n for no");
-		boolean comparedAns3 = compareAnswer(query, new String[] {"y", "n"}, s);
+		boolean comparedAns3 = compareAnswer(query, new String[] {"y", "Y", "n", "N"}, s);
 		
 		if(comparedAns1 && comparedAns2 && comparedAns3) {
 			return true;
@@ -148,12 +208,30 @@ public class EthicalOracle {
 	private boolean compareAnswer(String query, String expectedAnswers[], Scanner s) {
 		String answer = checkAnswer(query, expectedAnswers, s);
 		
-		if(answer.equals(expectedAnswers[0])) {
+		if(answer.equals(expectedAnswers[0]) || answer.equals(expectedAnswers[1])) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+	
+	private String verifyAnswer(String expectedAnswers[], Scanner s) {
+		boolean verifyAnswer = false;
+		while(!verifyAnswer) {
+			String answer = s.nextLine();
+			for(int i = 0; i < expectedAnswers.length; i++) {
+				if(answer.equals(expectedAnswers[i])) {
+					verifyAnswer = true;
+					return answer;
+					
+				}
+			}
+			if(!verifyAnswer) {
+				System.out.println("You did not eneter a valid answer please try again");
+			}
+		}
+		return null;
 	}
 	
 }
