@@ -15,7 +15,7 @@
             (else                           ; If the two are not equal to one another
                 (cond((null? search-for)    ; Special case if search for operator is null. We append the two values together
                 
-                    (cons (car source) replace-with)) ; Special case to combine the two values
+                   (copy (cons (car source) replace-with))) ; Special case to combine the two values
 
                     (else (copy source))               ; Just return the copy of source otherwise
                 
@@ -31,8 +31,18 @@
 
 ; Copies list
 (define (copy listCopy)
-    listCopy
-)
+    (cond ((isPair listCopy) 	 ; If we have a list we need to rebuild it
+    (cond ((null? (cdr listCopy)) 
+	  listCopy		; Return newly built list
+    )
+    (else
+     	 (cons(copy (car listCopy)) ; recursively call copy to rebuild list
+      	 (copy (cdr listCopy)))     
+   )	
+
+   ))
+   (else listCopy)  ; If not a pair then just return the value (We don't need to reubild the list)
+   ))
 ; Checks if a list is a pair returns true or false
 (define (isPair list)
     (if (pair? list)
@@ -42,18 +52,18 @@
     
 )
    ; TEST CASES
-   ;(display(replace 1 2 3))
-   ;(display(replace 1 1 2))
-   ;(display(replace '() 1 2))
-   ;(display(replace '() '() 1))
-   ;(display(replace '() '() '(1)))
-   ;(display(replace '(1) '() 2))
+; (display(replace 1 2 3))
+ ; (display(replace 1 1 2))
+  ; (display(replace '() 1 2))
+  ; (display(replace '() '() 1))
+  ; (display(replace '() '() '(1)))
+  ; (display(replace '(1) '() 2))
    ;(display(replace '(1) 1 2))
-   ;(display(replace '((1) (1)) '(1) '(2) ))
-   ;(display(replace '(a (b c) d) '(b c) '(x y)))
-   ;(display(replace '(a (b c) (d (b c))) '(b c) '(x y)))
-   ;(display(replace '(a b c) '(a b) '(x y)))
-   ;(display(replace '(a b c) '(b c) '(x y)))
+  ; (display(replace '((1) (1)) '(1) '(2) ))
+  ; (display(replace '(a (b c) d) '(b c) '(x y)))
+  ; (display(replace '(a (b c) (d (b c))) '(b c) '(x y)))
+  ; (display(replace '(a b c) '(a b) '(x y)))
+  ; (display(replace '(a b c) '(b c) '(x y)))
 
    
    
