@@ -5,8 +5,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#define MAXLINE 4096
+#include <math.h>
 
+
+//Function definitions
 int createSocket(void);
 struct in_addr convertByteOrder(char *);
 void bindSender(int, char*, char *);
@@ -15,6 +17,7 @@ void bindReceiver(int, char *);
 void receiveDatagram(int);
 
 
+// Creates and returns a socket fd
 int createSocket(){
     int endpoint = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -24,6 +27,7 @@ int createSocket(){
     }
     return endpoint;
 }
+// Converts the ip address to byte order
 struct in_addr convertByteOrder(char* ip){
     struct in_addr destIP;
     if(inet_aton(ip, &destIP) <0){
