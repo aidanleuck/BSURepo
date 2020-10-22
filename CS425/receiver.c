@@ -6,6 +6,8 @@ int main(int argc, char* argv[]){
     int endpoint = createSocket(); 
     bindReceiver(endpoint, argv[1]);
 
+    return 0;
+
 }
 /**
  * Binds addressing information to receiver
