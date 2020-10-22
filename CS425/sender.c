@@ -27,7 +27,6 @@ void bindSender(int endpoint, char *destPort, char* ip){
    
          freopen(NULL, "rb", stdin); // Read the actual binary data of the file
          size_t numBytes = fread(bfr, 1, bfr_len, stdin); // Reads in file byte by byte
-          printf("%ld", numBytes);
          int fileSize = numBytes;       // Save size of the file read
          int fileLeft = fileSize;       // Keep track how much file left to read
           
