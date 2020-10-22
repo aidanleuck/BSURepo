@@ -21,11 +21,13 @@ void bindSender(int endpoint, char *destPort, char* ip){
     dest.sin_addr = convertByteOrder(ip);
     
     bind(endpoint, (struct sockaddr *) &dest, sizeof(dest));
-    char bfr[65536];
+    int bfr_len = pow(2, 20);
+    char *bfr = (char *) malloc(bfr_len);
     char *curpos = bfr; // pointer to bfr
-    bfr[0] = '\0'; // Set initial value of array to empty string
+   
          freopen(NULL, "rb", stdin); // Read the actual binary data of the file
-         size_t numBytes = fread(bfr, 1, sizeof(bfr), stdin); // Reads in file byte by byte
+         size_t numBytes = fread(bfr, 1, bfr_len, stdin); // Reads in file byte by byte
+          printf("%ld", numBytes);
          int fileSize = numBytes;       // Save size of the file read
          int fileLeft = fileSize;       // Keep track how much file left to read
           
