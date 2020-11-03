@@ -3,6 +3,6 @@ module Lib
      
       
     ) where
-
+import System.Process
 someFunc :: IO ()
-someFunc = putStrLn "Hello World"
+someFunc = readProcess "wn" [] "" >>= putStrLn
