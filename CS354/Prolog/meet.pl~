@@ -8,29 +8,33 @@ lte(time(TH, T1M), time(TH, T2M)) :- T1M =< T2M.
 
 %                    |---------- PT ----------|
 %               |-- MT --|
-overlap(slot(PTbeg,PTend),slot(PTbeg,MTend)) :- 
-free(_,slot(PTbeg,PTend)), free(_,slot(MTbeg,MTend)),
-lte(PTbeg,MTend), lte(MTend, PTend), lte(MTbeg, PTbeg),
-PTbeg \== MTend.
+/*overlap(slot(PTbeg,PTend),slot(PTbeg,MTend)) :-
+ free(_,slot(PTbeg,PTend)), free(_,slot(PTbeg,MTend)).*/
+    
+   
+    
 
 
 %                    |---------- PT ----------|
 %                            |-- MT --|
-overlap(slot(PTbeg,PTend),slot(MTbeg,MTend)) :- 
-free(_,slot(PTbeg,PTend)), free(_,slot(MTbeg,MTend)),
-lte(PTbeg, MTbeg), lte(MTend, PTend),
-MTbeg \== MTend.
+overlap(slot(PTbeg,PTend),slot(MTbeg,MTend)) :-
+free(_,slot(PTbeg,PTend)), free(_,slot(MTbeg,MTend)).
 
 
 
-   
+    
+    
+
+    
+
+    
 
 %                    |---------- PT ----------|
 %                                         |-- MT --|
-overlap(slot(PTbeg,PTend),slot(MTbeg,PTend)) :-
-free(_,slot(PTbeg,PTend)), free(_,slot(MTbeg,_)),
-lte(PTbeg, MTbeg), lte(MTbeg, PTend),
-PTend \== MTbeg.
+/*overlap(slot(PTbeg,PTend),slot(MTbeg,PTend)) :-
+free(_,slot(PTbeg,PTend)), free(_,slot(MTbeg,PTend)).*/
+
+
 
 
 meetone(Person, MeetSlot) :-
@@ -42,7 +46,7 @@ meetall([], _).
 
 meet(Slot) :- people(P), meetall(P, Slot).
 
-people([ann,bob, carla]).
+people([ed]).
 
 main :- findall(Slot, meet(Slot), Slots),
         uniq(Slots, Uniq),
