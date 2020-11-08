@@ -39,10 +39,11 @@ num - number
 expr - expression
 """
 class NodeFact(Node):
-    def __init__(self, id, num, expr):
+    def __init__(self, id, num, expr, fact):
         self.id = id
         self.num = num
         self.expr = expr
+        self.fact = fact
     """
     Evaluates a node fact
     env - environment variable
@@ -54,10 +55,13 @@ class NodeFact(Node):
             return idVal
         # Checks if num is set if so returns the num
         elif(self.num is not None):
-            return self.num
+            return int(self.num)
         # Checks if expr is set if so returns the evaluated expression
         elif(self.expr is not None):
             return self.expr.eval(env)
+        elif(self.fact is not None):
+            value = self.fact.eval(env)
+            return 0 - value
 """
 Holds information about the add node
 + : Signal to add expr and term together
@@ -210,6 +214,7 @@ class NodeWr(Node):
     # prints the result of the expression
     def eval(self, env):
         print(self.expr.eval(env))
+"""Main program node that contains blocks """
 class NodeProg(Node):
     def __init__(self, block):
         super(NodeProg, self).__init__()
@@ -217,6 +222,7 @@ class NodeProg(Node):
 
     def eval(self, env):
         return self.block.eval(env)
+"""Holds information about a rd node """
 class NodeRd(Node):
     def __init__(self, rdId):
         super(NodeRd,self).__init__()
@@ -225,17 +231,21 @@ class NodeRd(Node):
         userInput = input()
         floatValue = float(userInput)
         env.put(self.id, floatValue)
+""" Holds information about a if node """
 class NodeIf(Node):
-    def __init__(self, boolExpr, stmt ):
+    def __init__(self, boolExpr, stmt1, stmt2 ):
         super(NodeIf, self).__init__()
         self.boolExpr = boolExpr
-        self.stmt = stmt
+        self.stmt1 = stmt1 # true stmt
+        self.stmt2 = stmt2 # else / false stmt
     
     def eval(self ,env):
-        result = self.boolExpr.eval(env)
-        if(result):
-            return self.stmt.eval(env)
-           
+        result = self.boolExpr.eval(env) # Get the result of the boolExpr
+        if(result):                      # If result is true we are going to execute stmt1, else stmt2
+            return self.stmt1.eval(env)
+        elif(result == False and self.stmt2 is not None): #Checks for else statement
+            return self.stmt2.eval(env)
+        
 class NodeBoolExpr(Node): 
     def __init__(self, expr1, relop,  expr2):
         super(NodeBoolExpr, self).__init__()
@@ -246,7 +256,7 @@ class NodeBoolExpr(Node):
         expr1Val = self.expr1.eval(env)
         expr2Val = self.expr2.eval(env)
         return self.relop.eval(env, expr1Val, expr2Val)
-
+"""Holds information about relops """
 class NodeRelOp(Node):
     def __init__(self, relop):
         super(NodeRelOp, self).__init__()
@@ -255,6 +265,7 @@ class NodeRelOp(Node):
     
     def eval(self ,env, expr1Val, expr2Val):        
         boolean = False
+        # Check for what kind of relop we have and perform comparison
         if(self.relop == "<"):
             if(expr1Val < expr2Val):
                 boolean = True
@@ -274,4 +285,22 @@ class NodeRelOp(Node):
             if(expr1Val == expr2Val):
                 boolean = True
         return boolean
-    
+"""Holds information about while loops"""
+class NodeWhile(Node):
+    def __init__(self, boolExpr, stmt):
+        super(NodeWhile, self).__init__()
+        self.boolExpr = boolExpr
+        self.stmt = stmt
+
+    def eval(self, env):
+        
+        while(self.boolExpr.eval(env)):
+            self.stmt.eval(env)
+""" Holds information about beg end blocks """
+class NodeBegEnd(Node):
+    def __init__(self, block):
+        super(NodeBegEnd, self).__init__()
+        self.block = block
+
+    def eval(self, env):
+        self.block.eval(env)

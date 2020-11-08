@@ -47,7 +47,7 @@ class Parser(object):
         if(self.curr().tok() == "id"):
             id = self.curr().lex()
             self.match('id')
-            return NodeFact(id, None, None)
+            return NodeFact(id, None, None, None)
         # If we have a ( then we have an expression
         elif("(" in self.curr().lex()):
             
@@ -56,12 +56,16 @@ class Parser(object):
             self.match(')')
 
             
-            return NodeFact(None, None, expr)
+            return NodeFact(None, None, expr, None)
         # If not a ( or expr then expect a num 
-        else:
+        elif(self.curr().tok() == "num"):
             num = self.curr().lex()
             self.match('num')
-            return NodeFact(None, num, None)
+            return NodeFact(None, num, None, None)
+        elif(self.curr().tok() == "-"):
+            self.match("-")
+            fact = self.parseFact()
+            return NodeFact(None, None, None, fact)
         
     # returns appropriate Addop Node
     def parseAddOp(self):
@@ -143,7 +147,7 @@ class Parser(object):
             return NodeStmt(None, None, None, None, None, begin)
         else:
             assn = self.parseAssn() # Parses an assignment 
-            return NodeStmt(assn, None, None, NOne, None, None)
+            return NodeStmt(assn, None, None, None, None, None)
 
         
 
@@ -162,24 +166,30 @@ class Parser(object):
         return NodeProg(block)
     
     def parseRd(self):
-        rID = self.curr().lex()
+        rID = self.curr().lex() # Gets id to save user input
         self.match('id')
         return NodeRd(rID)
     def parseIf(self):
-        boolExpr = self.parseBoolExpr()
+        boolExpr = self.parseBoolExpr() # Parses boolean expression
         self.match('then')
-        stmt = self.parseStmt()
+        stmt = self.parseStmt()         # Parses statement
+        stmt2 = None
+        if(self.curr().tok() == "else"): # Checks for else
+            self.match('else')
+            stmt2 = self.parseStmt()
 
-        return NodeIf(boolExpr, stmt)
+
+        return NodeIf(boolExpr, stmt, stmt2)
         
     def parseBoolExpr(self):
-        expr = self.parseExpr()
+        expr = self.parseExpr()    # Parse expression, relop, and expr2
         relop = self.parseRelOp()
         expr2 = self.parseExpr()
         
 
         return NodeBoolExpr(expr, relop, expr2)    
 
+    # Checks for relop and returns node
     def parseRelOp(self):
         if(self.curr().tok() == "<"):
             self.match("<")
@@ -199,6 +209,19 @@ class Parser(object):
         else:
             self.match("==")
             return NodeRelOp("==")
+    # Parses while statement
+    def parseWhile(self):
+        boolExpr = self.parseBoolExpr()
+        self.match("do")
+        stmt = self.parseStmt()
+
+        return NodeWhile(boolExpr, stmt)
+    # Parses begin end block
+    def parseBegin(self):
+        block = self.parseBlock()
+        self.match("end")
+
+        return NodeBegEnd(block)
        
 
 
