@@ -1,5 +1,5 @@
 #include <stdint.h>
-
+#define HEADER_SIZE 8
 
 typedef struct data dataPacket;
 

@@ -83,7 +83,7 @@ void bindSender(int endpoint, char *destPort, char* ip){
                      sendHeader.flag.bits.DAT = 1;
                      memcpy(&sendHeader.data, curpos, fileLeft);
                      
-                     sendto(endpoint, &sendHeader, sizeof sendHeader, 0,(const struct sockaddr*) &dest, sizeof(dest));
+                     sendto(endpoint, &sendHeader, HEADER_SIZE + fileLeft, 0,(const struct sockaddr*) &dest, sizeof(dest));
                      
                      fileLeft -= maxPayLoad;
                      curpos += maxPayLoad;
@@ -96,7 +96,7 @@ void bindSender(int endpoint, char *destPort, char* ip){
                 
                  sendHeader.flag.bits.EOM = 1;
                  
-                 sendto(endpoint, &sendHeader, sizeof sendHeader, 0,(const struct sockaddr*) &dest, sizeof(dest));
+                 sendto(endpoint, &sendHeader, HEADER_SIZE, 0,(const struct sockaddr*) &dest, sizeof(dest));
                  free(bfr);
  }
 
@@ -132,13 +132,13 @@ void bindSender(int endpoint, char *destPort, char* ip){
      
      sigaction(SIGALRM, &handler, NULL);
      
-     int n = sendto(endpoint, &sendHeader, sizeof sendHeader, 0,(const struct sockaddr*) &dest, sizeof(dest));
+     int n = sendto(endpoint, &sendHeader, HEADER_SIZE, 0,(const struct sockaddr*) &dest, sizeof(dest));
     
         while(recvHeader.window == 0){
         alarm(10);
   
         if(recvFlag){
-            int n = sendto(endpoint, &sendHeader, sizeof sendHeader, 0,(const struct sockaddr*) &dest, sizeof(dest));
+            int n = sendto(endpoint, &sendHeader, HEADER_SIZE, 0,(const struct sockaddr*) &dest, sizeof(dest));
             recvFlag = 0;
             
         }

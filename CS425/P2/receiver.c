@@ -68,7 +68,7 @@ void receiveStartSeg(int endpoint, struct BPHead recv, struct sockaddr_in source
             int ret =  recvfrom(endpoint, &recv, sizeof recv ,0, (struct sockaddr *) &source, (socklen_t *) &length );
             if(ret > 0 && recv.flag.bits.RWA){
                 sendRecv.window = 5;
-                sendto(endpoint, &sendRecv, sizeof sendRecv, 0,(const struct sockaddr*) &source, sizeof(source));
+                sendto(endpoint, &sendRecv, HEADER_SIZE, 0,(const struct sockaddr*) &source, sizeof(source));
             }
         
 
