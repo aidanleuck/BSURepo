@@ -1,6 +1,5 @@
-#define maxPayLoad 512
 #include "header.h"
-#include "functions.h"
+#include "sender.h"
 
 
 volatile sig_atomic_t recvFlag = 0;
@@ -8,53 +7,48 @@ volatile sig_atomic_t recvFlag = 0;
 int main(int argc, char *argv[]){
     
     int endpoint = createSocket();
-    bindSender(endpoint, argv[2], argv[1]);
+    struct sockaddr_in sender = createSender(endpoint, argv[1], argv[2]);
+    struct sockaddr_in dest = createDest(argv[1], argv[2]);
+
+    bindSender(endpoint, sender);
+
+    requestRWA(endpoint, dest, sender); // Start by requesting window adv from sender
+    sendDatagram(endpoint, dest, sender);
 
     return 0;
 }
 
-struct sockaddr_in bindReceiverS(int endpoint, char *destPort){
-
-    
-    int destPortNum = atoi(destPort);
-    struct sockaddr_in recv;
-    memset(&recv, 0, sizeof recv);
-
-    recv.sin_family = AF_INET;
-    recv.sin_port = htons(destPortNum);
-    recv.sin_addr.s_addr = INADDR_ANY;
-    bind(endpoint, (struct sockaddr *) &recv, sizeof(recv));
-    return recv;
-
-}
-
-/**
- * Binds addressing information for sender
- **/
-void bindSender(int endpoint, char *destPort, char* ip){
-
+struct sockaddr_in createDest(char *ip, char *destPort){
     int destPortNum = atoi(destPort);
     struct sockaddr_in dest;
     memset(&dest, 0, sizeof dest);
     dest.sin_family = AF_INET;
     dest.sin_port = htons(destPortNum);
     dest.sin_addr = convertByteOrder(ip);
-    
-    bind(endpoint, (struct sockaddr *) &dest, sizeof(dest));
-   
 
-    
-    
-    sendDatagram(endpoint, dest);
+    return dest;
+}
+
+struct sockaddr_in createSender(int endpoint, char *ip, char *destPort){
+    struct sockaddr_in sender;
+    memset(&sender, 0, sizeof sender);
+    sender.sin_family = AF_INET;
+    sender.sin_port = htons(0);
+    sender.sin_addr.s_addr = INADDR_ANY;
+
+    return sender;
+}
+
+/**
+ * Binds addressing information for sender
+ **/
+void bindSender(int endpoint, struct sockaddr_in sender){
+    bind(endpoint, (struct sockaddr *) &sender, sizeof(sender));
                    
  }
  
 
- void sendDatagram(int endpoint, struct sockaddr_in dest){
-
-     
-
-     requestRWA(dest, endpoint);
+ void sendDatagram(int endpoint, struct sockaddr_in dest, struct sockaddr_in sender){
 
      long bfr_len = 4294967295;
      char *bfr = (char *) malloc(bfr_len);
@@ -104,22 +98,16 @@ void bindSender(int endpoint, char *destPort, char* ip){
     recvFlag = 1;
  }
 
- void requestRWA( struct sockaddr_in dest, int endpoint){
-
-     
-
-     
+ void requestRWA( int endpoint,struct sockaddr_in dest, struct sockaddr_in sender){
 
      struct BPHead sendHeader;
      struct BPHead recvHeader;
     
      struct sigaction handler;
      
-     //struct sockaddr_in source = bindReceiverS(endpoint, "12345");
-
      handler.sa_flags = 0;
-     handler.sa_sigaction = handle_alarm;
      sigemptyset(&handler.sa_mask);
+     handler.sa_handler = handle_alarm;
 
      memset(&sendHeader,0, sizeof sendHeader);
      memset(&recvHeader,0, sizeof sendHeader);
@@ -134,25 +122,23 @@ void bindSender(int endpoint, char *destPort, char* ip){
      
      int n = sendto(endpoint, &sendHeader, HEADER_SIZE, 0,(const struct sockaddr*) &dest, sizeof(dest));
     
-        while(recvHeader.window == 0){
-        alarm(10);
-  
+    while(recvHeader.window == 0){
+
         if(recvFlag){
             int n = sendto(endpoint, &sendHeader, HEADER_SIZE, 0,(const struct sockaddr*) &dest, sizeof(dest));
             recvFlag = 0;
             
         }
+        alarm(10);
+        recvfrom(endpoint, &recvHeader, sizeof recvHeader ,0, (struct sockaddr *) &sender, (socklen_t *) &length );
+            
         
-        
-        if(n > 0){
-               recvfrom(endpoint, &recvHeader, sizeof dest ,0, (struct sockaddr *) &dest, (socklen_t *) &length );
-                printf("%d", recvHeader.window);
             
             
-        }
+        
          
         
-         } 
+    } 
          
      
    
