@@ -20,7 +20,7 @@ void initializeList(struct DLL *DLLlist)
     DLLlist->count = 0;
 }
 
-void add(struct DLL *DLLlist, struct BPHead *addSeg)
+void addToFront(struct DLL *DLLlist, struct BPHead *addSeg)
 {
 
     if (DLLlist->count == 0)
@@ -76,7 +76,7 @@ void sort(struct DLL *list)
 
                 if (sortPointer->next != currValue)
                 {
-                    currValue->prev->next = currValue->next;
+                    currValue->prev->next = tempCurr.next;
                     if (sortPointer == list->head && currValue != list->tail)
                     {
                         list->head = currValue;
@@ -121,6 +121,7 @@ void sort(struct DLL *list)
                     else
                     {
                         sortPointer->prev->next = currValue;
+                        currValue->next->prev = sortPointer;
                     }
                 }
 
@@ -137,6 +138,7 @@ void sort(struct DLL *list)
         currValue = sortPointer->next;
     }
 }
+
 void clearList(struct DLL *list)
 {
     struct Node *curr = list->head;
@@ -147,18 +149,39 @@ void clearList(struct DLL *list)
         curr = curr->next;
         free(remove);
     }
-    free(list->head);
-    free(list->tail);
 
     list->count = 0;
 }
 
-int inList(struct DLL *list, struct BPHead *addSeg)
+struct Node *getPointer(struct DLL *list, struct BPHead *addSeg)
 {
-    int found = 0;
-    if (addSeg->segNum <= list->head->val->segNum)
+    struct Node *curr = list->head;
+    while (curr != NULL)
     {
-        found = 1;
+        if (addSeg->segNum == curr->val->segNum)
+        {
+            return curr;
+        }
+        else
+        {
+            curr = curr->next;
+        }
     }
-    return found;
+    return curr;
+}
+void removeSegs(struct DLL *list, struct Node *pointer)
+{
+    list->tail = pointer->prev;
+    if (pointer->prev)
+    {
+        pointer->prev->next = NULL;
+    }
+    while (pointer != NULL)
+    {
+        struct Node temp = *pointer;
+        free(pointer->val);
+        free(pointer);
+        pointer = temp.next;
+        list->count = list->count - 1;
+    }
 }

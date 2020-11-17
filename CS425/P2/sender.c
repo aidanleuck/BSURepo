@@ -3,6 +3,7 @@
 #include "list.h"
 
 volatile sig_atomic_t recvFlag = 0;
+int receiverWindowSize = 0;
 
 int main(int argc, char *argv[])
 {
@@ -54,7 +55,7 @@ void handle_alarm(int sig)
     recvFlag = 1;
 }
 
-void requestACK(int endpoint, struct BPHead *sendHeader, int *unackSegs, struct sockaddr_in dest, struct sockaddr_in sender)
+void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struct sockaddr_in dest, struct sockaddr_in sender)
 {
 
     struct sigaction handler;
@@ -65,11 +66,33 @@ void requestACK(int endpoint, struct BPHead *sendHeader, int *unackSegs, struct 
     sigaction(SIGALRM, &handler, NULL);
 
     alarm(10);
-    recvfrom(endpoint, sendHeader, sizeof *sendHeader, 0, (struct sockaddr *)&sender, (socklen_t *)&length);
+    // Catches the rare case when there are no more to acknowledge but the window advertisement was lost
+    if (list->count == 0)
+    {
+        sendRWA(endpoint, dest, sender);
+    }
+
+    int val = recvfrom(endpoint, sendHeader, sizeof *sendHeader, 0, (struct sockaddr *)&sender, (socklen_t *)&length);
+
+    if (val > 0 && sendHeader->ack == 1)
+    {
+        struct Node *pointer = getPointer(list, sendHeader);
+        removeSegs(list, pointer);
+        receiverWindowSize = sendHeader->window;
+    }
+
     if (recvFlag)
     {
+        struct Node *temp = list->tail;
+        while (temp != NULL)
+        {
+            sendto(endpoint, temp->val, sizeof(temp->val), 0, (const struct sockaddr *)&dest, sizeof(dest));
+            temp = temp->prev;
+        }
+
         recvFlag = 0;
     }
+    sendHeader->ack = 0;
 }
 
 void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in dest, struct sockaddr_in sender)
@@ -79,73 +102,76 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
     char *bfr = (char *)malloc(bfr_len);
     char *curpos = bfr; // pointer to bfr
 
-    int16_t sequenceNum = 0;
-
-    struct DLL unacknowledgedSegments; // Keeps track of unacknowledged data segments
-    initializeList(&unacknowledgedSegments);
-    struct BPHead unacknowledgedSegment;
-    unacknowledgedSegment.segNum = 9;
-    struct BPHead unacknowledgedSegment1;
-    unacknowledgedSegment1.segNum = 7;
-    struct BPHead unacknowledgedSegment2;
-    unacknowledgedSegment2.segNum = 5;
-
-    struct BPHead unacknowledgedSegment3;
-    unacknowledgedSegment3.segNum = 12;
-
-    struct BPHead unacknowledgedSegment4;
-    unacknowledgedSegment4.segNum = 1;
-
-    add(&unacknowledgedSegments, &unacknowledgedSegment);
-    sort(&unacknowledgedSegments);
+    long sequenceNum = 0;
+    struct DLL unackSegs;
+    initializeList(&unackSegs);
 
     freopen(NULL, "rb", stdin);                      // Read the actual binary data of the file
     size_t numBytes = fread(bfr, 1, bfr_len, stdin); // Reads in file byte by byte
     long fileSize = numBytes;                        // Save size of the file read
     long fileLeft = fileSize;                        // Keep track how much file left to send
 
-    while (fileLeft > 0)
+    while (fileLeft > 0 || unackSegs.count > 0)
     {
-        if (fileLeft >= 512)
-        { // If there is more than 512 bytes left to transfer
-            memcpy(&sendHeader->data, curpos, maxPayLoad);
-            sendHeader->flag.bits.DAT = 1;
-            sendHeader->size = maxPayLoad;
-            sendHeader->segNum = sequenceNum;
+        uint16_t sendSequence = (uint16_t) ~((~(~0 << 16) << 16)) & sequenceNum;
+        if (receiverWindowSize > 0)
+        {
+            if (fileLeft >= 512)
+            { // If there is more than 512 bytes left to transfer
+                memcpy(&sendHeader->data, curpos, maxPayLoad);
+                sendHeader->flag.bits.DAT = 1;
+                sendHeader->size = maxPayLoad;
+                sendHeader->segNum = sendSequence;
 
-            sendto(endpoint, sendHeader, sizeof *sendHeader, 0, (const struct sockaddr *)&dest, sizeof(dest));
+                sendto(endpoint, sendHeader, sizeof *sendHeader, 0, (const struct sockaddr *)&dest, sizeof(dest));
 
-            sequenceNum++;
-            sendHeader->window = sendHeader->window - 1;
+                sequenceNum++;
+                receiverWindowSize--;
 
-            //requestACK(endpoint, sendHeader, unacknowledgedSegment, dest, sender);
+                if (getPointer(&unackSegs, sendHeader) == NULL)
+                {
+                    addToFront(&unackSegs, sendHeader);
+                    sort(&unackSegs);
+                }
 
-            fileLeft -= maxPayLoad;
-            curpos += maxPayLoad;
+                requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
+
+                fileLeft -= maxPayLoad;
+                curpos += maxPayLoad;
+            }
+            else if (fileLeft < 512 && fileLeft > 0)
+            { // If there are less than 512 bytes left, only send remaining data
+                sendHeader->size = fileLeft;
+                sendHeader->flag.bits.DAT = 1;
+                sendHeader->segNum = sequenceNum;
+                memcpy(&sendHeader->data, curpos, fileLeft);
+
+                sendto(endpoint, sendHeader, HEADER_SIZE + fileLeft, 0, (const struct sockaddr *)&dest, sizeof(dest));
+                sequenceNum++;
+
+                if (getPointer(&unackSegs, sendHeader) == NULL)
+                {
+                    addToFront(&unackSegs, sendHeader);
+                    sort(&unackSegs);
+                }
+
+                requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
+
+                fileLeft -= maxPayLoad;
+                curpos += maxPayLoad;
+            }
         }
-        else if (fileLeft < 512 && fileLeft > 0)
-        { // If there are less than 512 bytes left, only send remaining data
-            sendHeader->size = fileLeft;
-            sendHeader->flag.bits.DAT = 1;
-            sendHeader->segNum = sequenceNum;
-            memcpy(&sendHeader->data, curpos, fileLeft);
-
-            sendto(endpoint, sendHeader, HEADER_SIZE + fileLeft, 0, (const struct sockaddr *)&dest, sizeof(dest));
-            sequenceNum++;
-            sendHeader->window = sendHeader->window - 1;
-
-            //requestACK(endpoint, sendHeader, unacknowledgedSegment, dest, sender);
-
-            fileLeft -= maxPayLoad;
-            curpos += maxPayLoad;
+        else
+        {
+            requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
         }
-        memset(sendHeader, 0, sizeof *sendHeader); // Reset the header to default state
     }
 
     sendHeader->flag.bits.EOM = 1;
 
     sendto(endpoint, sendHeader, HEADER_SIZE, 0, (const struct sockaddr *)&dest, sizeof(dest));
     free(bfr);
+    clearList(&unackSegs);
 }
 
 struct BPHead sendRWA(int endpoint, struct sockaddr_in dest, struct sockaddr_in sender)
@@ -182,6 +208,7 @@ struct BPHead sendRWA(int endpoint, struct sockaddr_in dest, struct sockaddr_in 
         alarm(10);
         recvfrom(endpoint, &recvHeader, sizeof recvHeader, 0, (struct sockaddr *)&sender, (socklen_t *)&length);
     }
+    receiverWindowSize = recvHeader.window;
 
     return recvHeader;
 }
