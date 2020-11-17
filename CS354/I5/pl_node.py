@@ -1,3 +1,4 @@
+from functions import Function
 #!/usr/bin/env python
 """ generated source for module Node """
 
@@ -322,3 +323,30 @@ class NodeWr(Node):
         val = self.expr.eval(env)
         print(val)
         return val
+
+class NodeFunc(Node):
+    def __init__(self, funcID, paramID, expr):
+        """ generated source for method __init__ """
+        super(NodeFunc, self).__init__()
+        self.funcID = funcID
+        self.paramID = paramID
+        self.expr = expr
+
+    def eval(self, env):
+        passedFunc = Function(self.paramID, self.expr)
+        return env.putFunc(self.funcID, passedFunc)
+        
+class NodeCall(Node):
+    def __init__(self, pos, funcID, expr):
+        """ generated source for method __init__ """
+        super(NodeCall, self).__init__()
+        self.pos = pos
+        self.funcID = funcID
+        self.expr = expr
+
+    def eval(self, env):
+        function = env.getFunc(self.pos, self.funcID)
+        env.put(function.param, self.expr.eval(env))
+        return function.call(self.expr, env)
+        
+        

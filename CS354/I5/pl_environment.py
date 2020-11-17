@@ -22,3 +22,10 @@ class Environment(object):
         if var in self.map:
             return self.map[var]
         raise EvalException(pos, "undefined variable: " + var)
+    def putFunc(self, var, func):
+        self.funcMap[var] = func
+        return func
+    def getFunc(self, pos, var):
+        if var in self.funcMap:
+            return self.funcMap[var]
+        raise EvalException(pos, "undefined function: " + var)
