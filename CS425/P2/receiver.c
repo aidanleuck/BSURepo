@@ -47,18 +47,15 @@ void bindReceiver(int endpoint, struct sockaddr_in source)
  **/
 void receiveDatagram(int endpoint, struct sockaddr_in source)
 {
-    struct BPHead recvHead;
-    struct BPHead sendHead;
-    memset(&recvHead, 0, sizeof recvHead);
     int length;
-    sendHead.window = 5;
+
+    struct BPHead recvHead;
+    memset(&recvHead, 0, sizeof recvHead);
 
     recvHead.segNum = 1000; // Set some value for recvHead that wont be the first segment value
 
-    struct DLL outOfOrder;
-    initializeList(&outOfOrder);
-    srand(time(NULL));
-    int EOM = 0;
+    struct DLL outOfOrder;       // Stores segments that were received out of order
+    initializeList(&outOfOrder); // Initializes list
 
     do
     { // The loop should run once to receive a zero length datagram
@@ -67,45 +64,49 @@ void receiveDatagram(int endpoint, struct sockaddr_in source)
 
         recvfrom(endpoint, &recvHead, sizeof recvHead, 0, (struct sockaddr *)&source, (socklen_t *)&length);
 
-        EOM = recvHead.flag.bits.EOM;
-
-        sendHead = recvHead;
-        sendHead.window = WINDOW_SIZE - outOfOrder.count; // The number of segments the receiver is prepared to accept
-
-        sendHead.ack = 1;
-
-        // Only add to list if we received a data segment
-
-        if (recvHead.flag.bits.DAT == 1 && getPointer(&outOfOrder, &sendHead) == NULL && recvHead.segNum >= expectedSequenceNum)
+        if (recvHead.flag.bits.DAT == 1 && getPointer(&outOfOrder, recvHead.segNum) == NULL && recvHead.segNum >= compareSequence)
         {
-            addToFront(&outOfOrder, &sendHead);
+            addToFront(&outOfOrder, &recvHead);
             sort(&outOfOrder);
         }
 
+        // Only add to list if we received a data segment
+
         if (compareSequence == recvHead.segNum)
         {
-            struct Node *headPtr = outOfOrder.head;
-            while (headPtr != NULL && headPtr->val->segNum <= recvHead.segNum)
+            struct Node *prevItPtr;
+            if (recvHead.flag.bits.DAT)
             {
-                sendHead.window = sendHead.window + 1;
-                sendto(endpoint, headPtr->val, HEADER_SIZE, 0, (const struct sockaddr *)&source, sizeof(source));
-                expectedSequenceNum++;
+                struct Node *tailPtr = outOfOrder.tail;
 
-                if (recvHead.flag.bits.DAT)
+                while (tailPtr != NULL && tailPtr->val->segNum <= compareSequence)
                 {
-                    fwrite(&headPtr->val->data, headPtr->val->size, 1, stdout); // Write buffer to stdout.
+                    fwrite(&tailPtr->val->data, tailPtr->val->size, 1, stdout); // Write buffer to stdout.
+                    prevItPtr = tailPtr;
+                    tailPtr = tailPtr->prev;
+                    expectedSequenceNum++;
+                    compareSequence = (uint16_t) ~((~(~0 << 16) << 16)) & expectedSequenceNum;
                 }
-                headPtr = headPtr->next;
             }
+
+            struct BPHead sendACK; // Send acknowledgement
+            sendACK.ack = prevItPtr->val->segNum;
+            sendACK.flag.bits.ACK = 1;
+
+            removeSegs(&outOfOrder, prevItPtr); // Remove every element we just wrote.
+
+            // The window size is 5 - number of items that were received out of order
+            sendACK.window = WINDOW_SIZE - outOfOrder.count;
+            sendto(endpoint, &sendACK, HEADER_SIZE, 0, (const struct sockaddr *)&source, sizeof(source));
+
             if (recvHead.flag.bits.RWA)
             {
                 receiveStartSeg(endpoint, source);
             }
-            clearList(&outOfOrder);
         }
-        memset(&sendHead, 0, sizeof sendHead);
 
-    } while (!EOM); // Check if empty buffer sent
+    } while (!recvHead.flag.bits.EOM); // Check if empty buffer sent
+    clearList(&outOfOrder);
 }
 void receiveStartSeg(int endpoint, struct sockaddr_in source)
 {

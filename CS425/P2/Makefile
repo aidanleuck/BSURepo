@@ -1,4 +1,4 @@
-CFLAGS = -Wall
+CFLAGS = -std=gnu99 -Wall
 
 all: clean rules.d receiver sender
 rules.d : $(wildcard *.c) $(wildcard *.h)

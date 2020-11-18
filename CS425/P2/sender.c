@@ -74,9 +74,9 @@ void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struc
 
     int val = recvfrom(endpoint, sendHeader, sizeof *sendHeader, 0, (struct sockaddr *)&sender, (socklen_t *)&length);
 
-    if (val > 0 && sendHeader->ack == 1)
+    if (val > 0 && sendHeader->flag.bits.ACK == 1)
     {
-        struct Node *pointer = getPointer(list, sendHeader);
+        struct Node *pointer = getPointer(list, sendHeader->ack);
         removeSegs(list, pointer);
         receiverWindowSize = sendHeader->window;
     }
@@ -86,13 +86,13 @@ void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struc
         struct Node *temp = list->tail;
         while (temp != NULL)
         {
-            sendto(endpoint, temp->val, sizeof(temp->val), 0, (const struct sockaddr *)&dest, sizeof(dest));
+            sendto(endpoint, temp->val, HEADER_SIZE + temp->val->size, 0, (const struct sockaddr *)&dest, sizeof(dest));
             temp = temp->prev;
         }
 
         recvFlag = 0;
     }
-    sendHeader->ack = 0;
+    sendHeader->flag.bits.ACK = 0;
 }
 
 void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in dest, struct sockaddr_in sender)
@@ -119,6 +119,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
             if (fileLeft >= 512)
             { // If there is more than 512 bytes left to transfer
                 memcpy(&sendHeader->data, curpos, maxPayLoad);
+                sendHeader->flag.bits.ACK = 0;
                 sendHeader->flag.bits.DAT = 1;
                 sendHeader->size = maxPayLoad;
                 sendHeader->segNum = sendSequence;
@@ -128,7 +129,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
                 sequenceNum++;
                 receiverWindowSize--;
 
-                if (getPointer(&unackSegs, sendHeader) == NULL)
+                if (getPointer(&unackSegs, sendHeader->segNum) == NULL)
                 {
                     addToFront(&unackSegs, sendHeader);
                     sort(&unackSegs);
@@ -149,7 +150,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
                 sendto(endpoint, sendHeader, HEADER_SIZE + fileLeft, 0, (const struct sockaddr *)&dest, sizeof(dest));
                 sequenceNum++;
 
-                if (getPointer(&unackSegs, sendHeader) == NULL)
+                if (getPointer(&unackSegs, sendHeader->segNum) == NULL)
                 {
                     addToFront(&unackSegs, sendHeader);
                     sort(&unackSegs);
@@ -159,6 +160,10 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
 
                 fileLeft -= maxPayLoad;
                 curpos += maxPayLoad;
+            }
+            else
+            {
+                requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
             }
         }
         else

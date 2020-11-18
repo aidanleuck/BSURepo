@@ -149,16 +149,18 @@ void clearList(struct DLL *list)
         curr = curr->next;
         free(remove);
     }
+    list->head = NULL;
+    list->tail = NULL;
 
     list->count = 0;
 }
 
-struct Node *getPointer(struct DLL *list, struct BPHead *addSeg)
+struct Node *getPointer(struct DLL *list, int segNum)
 {
     struct Node *curr = list->head;
     while (curr != NULL)
     {
-        if (addSeg->segNum == curr->val->segNum)
+        if (segNum == curr->val->segNum)
         {
             return curr;
         }
@@ -183,5 +185,9 @@ void removeSegs(struct DLL *list, struct Node *pointer)
         free(pointer);
         pointer = temp.next;
         list->count = list->count - 1;
+    }
+    if (list->count == 0)
+    {
+        list->head = NULL;
     }
 }
