@@ -77,7 +77,11 @@ void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struc
     if (val > 0 && sendHeader->flag.bits.ACK == 1)
     {
         struct Node *pointer = getPointer(list, sendHeader->ack);
-        removeSegs(list, pointer);
+        if (pointer != NULL)
+        {
+            removeSegs(list, pointer);
+        }
+
         receiverWindowSize = sendHeader->window;
     }
 
