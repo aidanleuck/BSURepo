@@ -15,7 +15,7 @@ debug: clean rules.d sender receiver
 
 
 debugSender: debug
-	gdb -ex 'set args 127.0.0.1 12345 < ~/Downloads/v2.py' sender 
+	gdb -ex 'set args 127.0.0.1 12345 < sender.c' sender 
 	
 debugReceiver: debug
 	gdb -ex 'set args 12345' receiver

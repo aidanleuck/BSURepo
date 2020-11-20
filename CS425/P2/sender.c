@@ -4,18 +4,20 @@
 
 volatile sig_atomic_t recvFlag = 0;
 int receiverWindowSize = 0;
+struct sockaddr_in dest;
+struct sockaddr_in sender;
 
 int main(int argc, char *argv[])
 {
 
     int endpoint = createSocket();
-    struct sockaddr_in sender = createSender(endpoint, argv[1], argv[2]);
-    struct sockaddr_in dest = createDest(argv[1], argv[2]);
+    sender = createSender(endpoint, argv[1], argv[2]);
+    dest = createDest(argv[1], argv[2]);
 
-    bindSender(endpoint, sender);
 
-    struct BPHead recvHeader = sendRWA(endpoint, dest, sender); // Start by requesting window adv from sender
-    sendDatagram(endpoint, &recvHeader, dest, sender);
+    bind(endpoint, (struct sockaddr *)&sender, sizeof(sender));
+    struct BPHead recvHeader = sendRWA(endpoint); // Start by requesting window adv from sender
+    sendDatagram(endpoint, &recvHeader);
 
     return 0;
 }
@@ -38,7 +40,7 @@ struct sockaddr_in createSender(int endpoint, char *ip, char *destPort)
     memset(&sender, 0, sizeof sender);
     sender.sin_family = AF_INET;
     sender.sin_port = htons(0);
-    sender.sin_addr.s_addr = INADDR_ANY;
+    sender.sin_addr.s_addr = htonl(INADDR_ANY);
 
     return sender;
 }
@@ -46,9 +48,9 @@ struct sockaddr_in createSender(int endpoint, char *ip, char *destPort)
 /**
  * Binds addressing information for sender
  **/
-void bindSender(int endpoint, struct sockaddr_in sender)
+void bindSender(int endpoint)
 {
-    bind(endpoint, (struct sockaddr *)&sender, sizeof(sender));
+    bind(endpoint, (struct sockaddr *)&dest, sizeof(dest));
 }
 // Sets flag if alarm fails
 void handle_alarm(int sig)
@@ -56,7 +58,7 @@ void handle_alarm(int sig)
     recvFlag = 1;
 }
 
-void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struct sockaddr_in dest, struct sockaddr_in sender)
+void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list)
 {
 
     struct sigaction handler;
@@ -70,7 +72,7 @@ void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struc
     // Catches the rare case when there are no more to acknowledge but the window advertisement was lost
     if (list->count == 0)
     {
-        sendRWA(endpoint, dest, sender);
+        sendRWA(endpoint);
     }
     // Receives acknowledgement
     int val = recvfrom(endpoint, sendHeader, sizeof *sendHeader, 0, (struct sockaddr *)&sender, (socklen_t *)&length);
@@ -100,7 +102,7 @@ void requestACK(int endpoint, struct BPHead *sendHeader, struct DLL *list, struc
     sendHeader->flag.bits.ACK = 0;
 }
 
-void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in dest, struct sockaddr_in sender)
+void sendDatagram(int endpoint, struct BPHead *sendHeader)
 {
 
     long bfr_len = 4294967295;           // ~4GB buffer
@@ -148,7 +150,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
                     sort(&unackSegs);
                 }
                 // Request an acknowledgement
-                requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
+                requestACK(endpoint, sendHeader, &unackSegs);
 
                 fileLeft -= maxPayLoad;
                 curpos += maxPayLoad;
@@ -176,7 +178,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
                 }
 
                 // Request acknowledgement
-                requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
+                requestACK(endpoint, sendHeader, &unackSegs);
 
                 fileLeft -= maxPayLoad;
                 curpos += maxPayLoad;
@@ -185,7 +187,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
         // Edge case if we received an acknowledgement for every segment, but failed to get a window update
         else
         {
-            requestACK(endpoint, sendHeader, &unackSegs, dest, sender);
+            requestACK(endpoint, sendHeader, &unackSegs);
         }
     }
     // Send EOM
@@ -197,7 +199,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader, struct sockaddr_in de
 }
 
 // Sends a request for a window update
-struct BPHead sendRWA(int endpoint, struct sockaddr_in dest, struct sockaddr_in sender)
+struct BPHead sendRWA(int endpoint)
 {
 
     struct BPHead sendHeader;
