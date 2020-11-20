@@ -50,7 +50,7 @@ struct sockaddr_in createSender(int endpoint, char *ip, char *destPort)
  **/
 void bindSender(int endpoint)
 {
-    bind(endpoint, (struct sockaddr *)&sender, sizeof(sender));
+    bind(endpoint, (struct sockaddr *)&dest, sizeof(dest));
 }
 // Sets flag if alarm fails
 void handle_alarm(int sig)
