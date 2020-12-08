@@ -1,4 +1,4 @@
-void bindReceiver(int, struct sockaddr_in);
-void receiveDatagram(int, struct sockaddr_in);
-void receiveStartSeg(int, struct sockaddr_in);
+void bindReceiver(int);
+void receiveDatagram(int);
+void receiveStartSeg(int);
 struct sockaddr_in createSource(char *);

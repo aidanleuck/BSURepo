@@ -8,15 +8,31 @@
  * Creates and binds socket to receiver
  **/
 
-long expectedSequenceNum = 0;
+long expectedSequenceNum = 0; // Keeps track of the expected sequence num
+struct sockaddr_in source;    // receiver sockaddr
 int main(int argc, char *argv[])
 {
+    // Create a socket
     int endpoint = createSocket();
 
-    struct sockaddr_in source = createSource(argv[1]);
-    bindReceiver(endpoint, source);
-    receiveStartSeg(endpoint, source);
-    receiveDatagram(endpoint, source);
+    if (argc != 2)
+    {
+        fprintf(stderr, "Incorrect arguments\n");
+        fprintf(stderr, "Usage: receiver port\n");
+
+        exit(EXIT_FAILURE);
+    }
+    // Bind addressing information to source
+    source = createSource(argv[1]);
+
+    // Bind source to the endpoint
+    bind(endpoint, (struct sockaddr *)&source, sizeof(source));
+
+    // Receive the RWA
+    receiveStartSeg(endpoint);
+
+    // Main loop receiving datagrams
+    receiveDatagram(endpoint);
 
     return 0;
 }
@@ -37,15 +53,13 @@ struct sockaddr_in createSource(char *destPort)
 
     return recv;
 }
-void bindReceiver(int endpoint, struct sockaddr_in source)
+void bindReceiver(int endpoint)
 {
-
-    bind(endpoint, (struct sockaddr *)&source, sizeof(source));
 }
 /**
  * Receives a datagram
  **/
-void receiveDatagram(int endpoint, struct sockaddr_in source)
+void receiveDatagram(int endpoint)
 {
     int length;
 
@@ -90,6 +104,7 @@ void receiveDatagram(int endpoint, struct sockaddr_in source)
             }
 
             struct BPHead sendACK; // Send acknowledgement
+            memset(&sendACK, 0, sizeof(sendACK));
             sendACK.ack = prevItPtr->val->segNum;
             sendACK.flag.bits.ACK = 1;
 
@@ -101,31 +116,32 @@ void receiveDatagram(int endpoint, struct sockaddr_in source)
 
             if (recvHead.flag.bits.RWA)
             {
-                receiveStartSeg(endpoint, source);
+                receiveStartSeg(endpoint);
             }
         }
 
     } while (!recvHead.flag.bits.EOM); // Check if empty buffer sent
     clearList(&outOfOrder);
 }
-void receiveStartSeg(int endpoint, struct sockaddr_in source)
+void receiveStartSeg(int endpoint)
 {
     int length;
-    struct BPHead recv;
-    struct BPHead sendRecv;
+    struct sockaddr_in test;
+    struct BPHead recv;     // Received header
+    struct BPHead sendRecv; // Send header with advertisement
     memset(&recv, 0, sizeof recv);
     memset(&sendRecv, 0, sizeof sendRecv);
-    sendRecv.window = 5;
+    sendRecv.window = WINDOW_SIZE;
 
+    // Continue looping receiving until we receive a RWA
     while (!recv.flag.bits.RWA)
     {
 
-        recvfrom(endpoint, &recv, sizeof recv, 0, (struct sockaddr *)&source, (socklen_t *)&length);
+        recvfrom(endpoint, &recv, sizeof recv, 0, (struct sockaddr *)&test, (socklen_t *)&length);
     }
-
+    // Send window advetisement to sender
     if (recv.flag.bits.RWA)
     {
-        sendRecv.window = 5;
-        sendto(endpoint, &sendRecv, HEADER_SIZE, 0, (const struct sockaddr *)&source, sizeof(source));
+        sendto(endpoint, &sendRecv, HEADER_SIZE, 0, (const struct sockaddr *)&test, sizeof(test));
     }
 }

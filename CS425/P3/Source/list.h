@@ -1,18 +1,23 @@
+
+// DLL
 struct DLL
 {
-    struct Node *head;
-    struct Node *tail;
+    struct Node *head; // Points to front of list
+    struct Node *tail; // Point to end of list
 
-    int count;
+    int count; // count of elements in list
 };
 
 struct Node
 {
-    struct Node *next;
-    struct BPHead *val;
-    struct Node *prev;
+    struct Node *next;  // Point to next node
+    struct BPHead *val; // Segment
+    struct Node *prev;  // previous node
 };
 
+/**
+ * Initialize empty list
+ */
 void initializeList(struct DLL *DLLlist)
 {
     DLLlist->head = NULL;
@@ -20,9 +25,12 @@ void initializeList(struct DLL *DLLlist)
     DLLlist->count = 0;
 }
 
+/**
+ * Adds an element to the front of the list
+ */
 void addToFront(struct DLL *DLLlist, struct BPHead *addSeg)
 {
-
+    // First element added to list
     if (DLLlist->count == 0)
     {
         DLLlist->head = malloc(sizeof(struct Node));
@@ -30,6 +38,7 @@ void addToFront(struct DLL *DLLlist, struct BPHead *addSeg)
         DLLlist->head->next = NULL;
         DLLlist->head->prev = NULL;
     }
+    // Second element
     else if (DLLlist->count == 1)
     {
         DLLlist->head = malloc(sizeof(struct Node));
@@ -39,6 +48,7 @@ void addToFront(struct DLL *DLLlist, struct BPHead *addSeg)
         DLLlist->head->prev = NULL;
         DLLlist->tail->next = NULL;
     }
+    // All other cases
     else
     {
         struct Node *temp = DLLlist->head;
@@ -51,11 +61,10 @@ void addToFront(struct DLL *DLLlist, struct BPHead *addSeg)
     DLLlist->head->val = malloc(sizeof(struct BPHead));
     *DLLlist->head->val = *addSeg;
     DLLlist->count = DLLlist->count + 1;
-
-    //sort((orderedList), count);
 }
 /**
  * If for some reason we received out of order we need to just check the list and ensure that it is sorted.
+ * Simple implemenation of insertion sort using pointers
  */
 void sort(struct DLL *list)
 {
@@ -70,9 +79,10 @@ void sort(struct DLL *list)
         {
             struct Node tempSort = *sortPointer;
             struct Node tempCurr = *currValue;
+
+            // If next element is larger than current element
             if (currValue->val->segNum > sortPointer->val->segNum)
             {
-                printf("%d", currValue->val->segNum);
 
                 if (sortPointer->next != currValue)
                 {
@@ -138,7 +148,9 @@ void sort(struct DLL *list)
         currValue = sortPointer->next;
     }
 }
-
+/**
+ * Dealloactes memory
+ */
 void clearList(struct DLL *list)
 {
     struct Node *curr = list->head;
@@ -157,7 +169,9 @@ void clearList(struct DLL *list)
 
     list->count = 0;
 }
-
+/**
+ * Get pointer to a specified segment
+ */
 struct Node *getPointer(struct DLL *list, int segNum)
 {
     struct Node *curr = list->head;
@@ -174,6 +188,9 @@ struct Node *getPointer(struct DLL *list, int segNum)
     }
     return curr;
 }
+/**
+ * Removes all segments < pointer
+ */
 void removeSegs(struct DLL *list, struct Node *pointer)
 {
     list->tail = pointer->prev;
