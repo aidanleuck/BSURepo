@@ -15,10 +15,17 @@ debug: clean rules.d sender receiver
 
 
 debugSender: debug
+<<<<<<< HEAD
 	gdb -ex 'set args 127.0.0.1 12345 < sender.c' sender3986 
 	
 debugReceiver: debug
 	gdb -ex 'set args 12345' receiver3986
+=======
+	gdb -ex 'set args 127.0.0.1 12346 < sender.c' sender3986 
+	
+debugReceiver: debug
+	gdb -ex 'set args 12346' receiver3986
+>>>>>>> ECE 330 Lab Final
 
 clean:
 	rm -f sender.o receiver.o receiver3986 sender3986 rules.d

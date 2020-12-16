@@ -71,10 +71,9 @@ void receiveDatagram(int endpoint)
     struct DLL outOfOrder;       // Stores segments that were received out of order
     initializeList(&outOfOrder); // Initializes list
 
+    uint16_t compareSequence = 0;
     do
     { // The loop should run once to receive a zero length datagram
-
-        uint16_t compareSequence = 0;
 
         while (windowSize > 0 && recvHead.flag.bits.EOM == 0)
         {
@@ -86,7 +85,7 @@ void receiveDatagram(int endpoint)
                 sendRWA(endpoint, source);
             }
 
-            if (recvHead.flag.bits.DAT == 1 && getPointer(&outOfOrder, recvHead.segNum) == NULL)
+            if (recvHead.flag.bits.DAT == 1 && getPointer(&outOfOrder, recvHead.segNum) == NULL && recvHead.segNum >= compareSequence)
             {
 
                 addToFront(&outOfOrder, &recvHead);
@@ -104,7 +103,7 @@ void receiveDatagram(int endpoint)
         if (outOfOrder.count > 0)
         {
 
-            struct Node *prevItPtr;
+            struct Node *prevItPtr = NULL;
 
             struct Node *tailPtr = outOfOrder.tail;
 
@@ -117,16 +116,19 @@ void receiveDatagram(int endpoint)
                 expectedSequenceNum++;
                 compareSequence = (uint16_t) ~((~(~0 << 16) << 16)) & expectedSequenceNum;
             }
+            if (prevItPtr != NULL)
+            {
 
-            struct BPHead sendACK; // Send acknowledgement
-            memset(&sendACK, 0, sizeof(sendACK));
-            sendACK.ack = prevItPtr->val->segNum;
-            sendACK.flag.bits.ACK = 1;
+                struct BPHead sendACK; // Send acknowledgement
+                memset(&sendACK, 0, sizeof(sendACK));
+                sendACK.ack = prevItPtr->val->segNum;
+                sendACK.flag.bits.ACK = 1;
 
-            removeSegs(&outOfOrder, prevItPtr); // Remove every element we just wrote.
+                removeSegs(&outOfOrder, prevItPtr); // Remove every element we just wrote.
 
-            // The window size is 5 - number of items that were received out of order
-            sendto(endpoint, &sendACK, HEADER_SIZE, 0, (const struct sockaddr *)&source, sizeof(source));
+                // The window size is 5 - number of items that were received out of order
+                sendto(endpoint, &sendACK, HEADER_SIZE, 0, (const struct sockaddr *)&source, sizeof(source));
+            }
         }
 
     } while (!recvHead.flag.bits.EOM); // Check if empty buffer sent

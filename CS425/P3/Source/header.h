@@ -26,11 +26,12 @@ union BPFlags
 {
     struct
     {
-        uint8_t DAT : 1;
-        uint8_t ACK : 1;
-        uint8_t RWA : 1;
-        uint8_t EOM : 1;
+
         uint8_t : 4; // Sets first 4 bits to 0
+        uint8_t EOM : 1;
+        uint8_t RWA : 1;
+        uint8_t ACK : 1;
+        uint8_t DAT : 1;
     } bits;
     uint8_t flagValue;
 } flag;
