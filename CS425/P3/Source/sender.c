@@ -142,11 +142,11 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader)
     while (fileLeft > 0 || unackSegs.count > 0)
     {
         // Gets lower 16 bits of the sequence
-        uint16_t sendSequence = (uint16_t) ~((~(~0 << 16) << 16)) & sequenceNum;
 
         // If the receivers window size is greater than 0 then continue sending
-        if (receiverWindowSize > 0)
+        while (receiverWindowSize > 0 && fileLeft > 0)
         {
+            uint16_t sendSequence = (uint16_t) ~((~(~0 << 16) << 16)) & sequenceNum;
             if (fileLeft >= 512)
             { // If there is more than 512 bytes left to transfer
 
@@ -155,6 +155,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader)
                 // Set appropriate flags
                 sendHeader->flag.bits.ACK = 0;
                 sendHeader->flag.bits.DAT = 1;
+                sendHeader->window = receiverWindowSize;
                 sendHeader->size = maxPayLoad;
                 sendHeader->segNum = sendSequence;
                 // Send datagram
@@ -170,7 +171,6 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader)
                     sort(&unackSegs);
                 }
                 // Request an acknowledgement
-                requestACK(endpoint, sendHeader, &unackSegs);
 
                 fileLeft -= maxPayLoad;
                 curpos += maxPayLoad;
@@ -182,6 +182,7 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader)
                 sendHeader->size = fileLeft;
                 sendHeader->flag.bits.DAT = 1;
                 sendHeader->segNum = sequenceNum;
+                sendHeader->window = receiverWindowSize;
                 memcpy(&sendHeader->data, curpos, fileLeft);
 
                 // Send datagram
@@ -198,22 +199,29 @@ void sendDatagram(int endpoint, struct BPHead *sendHeader)
                 }
 
                 // Request acknowledgement
-                requestACK(endpoint, sendHeader, &unackSegs);
 
                 fileLeft -= maxPayLoad;
                 curpos += maxPayLoad;
             }
+            if (fileLeft < 0)
+            {
+                // Send EOM
+                sendHeader->flag.bits.EOM = 1;
+
+                sendto(endpoint, sendHeader, HEADER_SIZE, 0, (const struct sockaddr *)&dest, sizeof(dest));
+            }
         }
         // Edge case if we received an acknowledgement for every segment, but failed to get a window update
-        else
+        if (unackSegs.count > 0)
         {
             requestACK(endpoint, sendHeader, &unackSegs);
+            if (fileLeft > 0)
+            {
+                sendRWA(endpoint);
+            }
         }
     }
-    // Send EOM
-    sendHeader->flag.bits.EOM = 1;
 
-    sendto(endpoint, sendHeader, HEADER_SIZE, 0, (const struct sockaddr *)&dest, sizeof(dest));
     free(bfr);             // free malloced buffer space
     clearList(&unackSegs); // clear the list
 }

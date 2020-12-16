@@ -70,3 +70,16 @@ struct in_addr convertByteOrder(char *ip)
     }
     return destIP;
 }
+void printSegment(struct BPHead *);
+void printSegment(struct BPHead *header)
+{
+    printf("Segment Received:\n");
+    printf("Segment Number: %u\n", header->segNum);
+    printf("Acknowledgement: %u\n", header->ack);
+    printf("DAT: %u\n", header->flag.bits.DAT);
+    printf("ACK: %u\n", header->flag.bits.ACK);
+    printf("RWA: %u\n", header->flag.bits.RWA);
+    printf("EOM: %u\n", header->flag.bits.EOM);
+    printf("Window: %u\n", header->window);
+    printf("Size: %u\n", header->size);
+}
