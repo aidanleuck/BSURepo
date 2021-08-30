@@ -1,15 +1,17 @@
+#define _GNU_SOURCE 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "deq.h"
+#include "Tests.h"
+
 
 int main() {
-  Deq q=deq_new();
+  Test_Put_AddToHeadEmptyList();
+  Test_Put_AddToHead2Item();
+  Test_Put_AddToHead3Item();
 
-  char *s=deq_str(q,0);
-  printf("%s\n",s);
-  free(s);
-
-  deq_del(q,0);
-  return 0;
+  
+  Test_Get_AddToHead2ItemGetHead();
 }
+
+
