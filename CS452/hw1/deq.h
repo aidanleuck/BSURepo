@@ -8,7 +8,6 @@
 
 typedef void *Deq;
 typedef void *Data;
-
 extern Deq deq_new();
 extern int deq_len(Deq q);
 
