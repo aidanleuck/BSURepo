@@ -111,7 +111,7 @@ bool runTest(Test testList)
                 printReturn("Tail ith", d);
             }
         }
-        else if (step.type = REM)
+        else if (step.type == REM)
         {
             // Saves REM step data if data was not found
             int *functionAddress = step.data;
@@ -133,7 +133,7 @@ bool runTest(Test testList)
                 }
             }
 
-            if (step.end = Head)
+            if (step.end == Head)
             {
                 Data d = deq_head_rem(q, functionAddress);
                 printReturn("Head remove", d);

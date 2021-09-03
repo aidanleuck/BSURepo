@@ -1,5 +1,5 @@
 prog=deq
-CFLAGS = -std=c99 -I.
+CFLAGS = -std=c99 -Wall -I.
 
 try: main.o libdeq.so
 	gcc -o $@ $< -L. -ldeq -Wl,-rpath=. -I.

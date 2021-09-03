@@ -48,7 +48,7 @@ static void put(Rep r, End e, Data d)
     ERROR("Node failed to malloc");
   }
   memset(node->np, 0, sizeof(node->np));
-  memset(node, 0, sizeof(node));
+  memset(node, 0, sizeof(*node));
   node->data = d;
 
   // If there are no items in the data structure.
