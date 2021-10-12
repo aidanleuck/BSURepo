@@ -68,6 +68,7 @@ extern LINKAGE void* lawnimp_mole(MoleRep m) {
   }
   LawnRep l=(LawnRep)m->lawn;
   Fl_Window* w=(Fl_Window*)l->window;
+  tsleep(m->vim0);
   Fl::lock();
   w->begin();
   Fl_Box* b=new Fl_Box(m->x,m->y,m->size,m->size);
@@ -77,7 +78,6 @@ extern LINKAGE void* lawnimp_mole(MoleRep m) {
   w->redraw();
   Fl::check();
   Fl::unlock();
-  tsleep(m->vim0);
   return b;
 }
 

@@ -8,10 +8,18 @@
 #include "lawn.h"
 #include "error.h"
 
-
+// <summary>Creates n threads running the passed in function</summary>
+// <param = "passFunc">The function to run in the newly created thread</param>
+// <param = "n">The number of threads to create</param>
+// <param = "arg">The arguments to pass to the function</param>
+// <returns>A list of thread id's that were created</returns>
 pthread_t** create_thread(TFunction passFunc, int n, void *arg){
     pthread_t** threadList = malloc(sizeof(pthread_t*) * (n));
     *threadList = malloc(sizeof(pthread_t)*(n));
+
+    if(!threadList){
+        ERROR("Malloc for threadlist failed");
+    }
 
     for(int i =0; i < n; i++){
         pthread_t thread_id = 0;
@@ -25,6 +33,10 @@ pthread_t** create_thread(TFunction passFunc, int n, void *arg){
     }
     return threadList;
 }
+
+// <summary>Waits on n threads to exit</summary>
+// <param = "threads">The list of threads to wait on</param>
+// <param = "n">The number of threads to wait on</param>
 void wait_thread(pthread_t** threads, int n){
     for(int i = 0; i < n; i++){
        pthread_t waitID =  (*threads)[i]; 

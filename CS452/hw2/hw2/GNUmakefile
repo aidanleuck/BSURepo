@@ -1,7 +1,6 @@
 prog=wam
 
 ccflags=-pthread
-ldflags=-pthread -L/usr/local/lib -lfltk -lXrender -lXcursor -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11
-
+ldflags=-pthread -lX11 -lfltk
 
 include ../GNUmakefile
