@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "command.h": "c",
+        "error.h": "c",
+        "sequence.h": "c"
+    }
+}

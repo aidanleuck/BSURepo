@@ -2,13 +2,17 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "Command.h"
 #include "error.h"
+#include "Redir.h"
 
 typedef struct {
   char *file;
   char **argv;
+  Redir redirec
+
 } *CommandRep;
 
 #define BIARGS CommandRep r, int *eof, Jobs jobs
@@ -93,39 +97,63 @@ static char **getargs(T_words words) {
   return argv;
 }
 
-extern Command newCommand(T_words words) {
+extern Command newCommand(T_words words, T_redir redirec) {
   CommandRep r=(CommandRep)malloc(sizeof(*r));
+  r->redirec = newRedir(redirec);
   if (!r)
     ERROR("malloc() failed");
   r->argv=getargs(words);
   r->file=r->argv[0];
   return r;
 }
+ int waitChild(int pid){
+  int status;
+  waitpid(pid, &status, 0);
+  return status;
+}
 
-static void child(CommandRep r, int fg) {
+static int child(CommandRep r, int fg) {
   int eof=0;
   Jobs jobs=newJobs();
   if (builtin(r,&eof,jobs))
     return;
   execvp(r->argv[0],r->argv);
+
+  
   ERROR("execvp() failed");
   exit(0);
 }
 
 extern void execCommand(Command command, Pipeline pipeline, Jobs jobs,
 			int *jobbed, int *eof, int fg) {
-  CommandRep r=command;
-  if (fg && builtin(r,eof,jobs))
+  CommandRep r = command;
+  if (fg && builtin(r, eof, jobs))
     return;
-  if (!*jobbed) {
-    *jobbed=1;
-    addJobs(jobs,pipeline);
+  if (!*jobbed)
+  {
+    *jobbed = 1;
+    addJobs(jobs, pipeline);
   }
-  int pid=fork();
-  if (pid==-1)
+  execRedir(r->redirec);
+  int pid = fork();
+  if (pid == -1)
     ERROR("fork() failed");
-  if (pid==0)
-    child(r,fg);
+  if (pid == 0){
+    child(r, fg);
+    if(!fg){
+      
+    }
+  }
+  if (pid > 0)
+  {
+    
+    int exitedChild = waitChild(pid);
+    redirectPipe(pipeline);
+   
+    if (exitedChild < 0)
+      ERROR("Child exited abnormally");
+  }
+  closeDescriptors(r->redirec);
 }
 
 extern void freeCommand(Command command) {
@@ -134,6 +162,7 @@ extern void freeCommand(Command command) {
   while (*argv)
     free(*argv++);
   free(r->argv);
+  free_redir(r->redirec);
   free(r);
 }
 

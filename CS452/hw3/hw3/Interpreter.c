@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "Interpreter.h"
+#include "Redir.h"
 #include "Sequence.h"
 #include "Pipeline.h"
 #include "Command.h"
@@ -15,8 +16,9 @@ static Command i_command(T_command t) {
   if (!t)
     return 0;
   Command command=0;
+
   if (t->words)
-    command=newCommand(t->words);
+    command=newCommand(t->words, t->redirection);
   return command;
 }
 
@@ -30,7 +32,13 @@ static void i_pipeline(T_pipeline t, Pipeline pipeline) {
 static void i_sequence(T_sequence t, Sequence sequence) {
   if (!t)
     return;
-  Pipeline pipeline=newPipeline(1);
+  int fg = 1;
+  
+  T_pipeline innerPipeline = t->pipeline->pipeline;
+
+  fg = innerPipeline ? 0 : 1;
+    
+  Pipeline pipeline=newPipeline(fg);
   i_pipeline(t->pipeline,pipeline);
   addSequence(sequence,pipeline);
   i_sequence(t->sequence,sequence);
