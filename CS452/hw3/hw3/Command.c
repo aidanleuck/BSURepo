@@ -117,9 +117,8 @@ static int child(CommandRep r, int fg) {
   Jobs jobs=newJobs();
   if (builtin(r,&eof,jobs))
     return;
+  execRedir(r->redirec);
   execvp(r->argv[0],r->argv);
-
-  
   ERROR("execvp() failed");
   exit(0);
 }
@@ -134,26 +133,22 @@ extern void execCommand(Command command, Pipeline pipeline, Jobs jobs,
     *jobbed = 1;
     addJobs(jobs, pipeline);
   }
-  execRedir(r->redirec);
+  //swapFd(pipeline);
   int pid = fork();
   if (pid == -1)
     ERROR("fork() failed");
   if (pid == 0){
     child(r, fg);
-    if(!fg){
-      
-    }
   }
-  if (pid > 0)
+  if (pid > 0) 
   {
-    
-    int exitedChild = waitChild(pid);
-    redirectPipe(pipeline);
-   
-    if (exitedChild < 0)
-      ERROR("Child exited abnormally");
+    if(fg){
+      if(waitChild(pid) < 0)
+        ERROR("Child exited abnormally");
+    }
+    //swapFd(pipeline);
+    closeDescriptors(r->redirec);
   }
-  closeDescriptors(r->redirec);
 }
 
 extern void freeCommand(Command command) {

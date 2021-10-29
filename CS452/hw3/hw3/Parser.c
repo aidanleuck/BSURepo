@@ -104,6 +104,9 @@ static T_sequence p_sequence() {
     sequence->op=";";
     sequence->sequence=p_sequence();
   }
+  else{
+    sequence->op = "";
+  }
   return sequence;
 }
 

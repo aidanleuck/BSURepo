@@ -5,9 +5,9 @@ typedef void *Pipeline;
 
 #include "Command.h"
 #include "Jobs.h"
-static void restoreFd(Pipeline pipeline, int* fd);
-static void writeFd(Pipeline pipeline);
-void redirPipe(Pipeline pipeline);
+extern void swapFd(Pipeline pipeline);
+extern void writeOut(Pipeline pipeline);
+extern void setupPipeLine(Pipeline pipeline);
 
 extern Pipeline newPipeline(int fg);
 extern void addPipeline(Pipeline pipeline, Command command);
