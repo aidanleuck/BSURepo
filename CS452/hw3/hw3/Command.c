@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <readline/history.h>
 
 #include "Command.h"
 #include "error.h"
@@ -57,6 +58,14 @@ BIDEFN(cd) {
     ERROR("chdir() failed"); // warn
 }
 
+BIDEFN(history){
+  HISTORY_STATE* state = history_get_history_state();
+  HIST_ENTRY** entry = history_list();
+  for(int i =0; i < state->length; i++){
+    printf("%d: %s\n",i, entry[i]->line);
+  }
+}
+
 static int builtin(BIARGS) {
   typedef struct {
     char *s;
@@ -66,11 +75,13 @@ static int builtin(BIARGS) {
     BIENTRY(exit),
     BIENTRY(pwd),
     BIENTRY(cd),
+    BIENTRY(history),
     {0,0}
   };
   int i;
   for (i=0; builtins[i].s; i++)
     if (!strcmp(r->file,builtins[i].s)) {
+      //execRedir(r->redirec);
       builtins[i].f(r,eof,jobs);
       return 1;
     }
@@ -106,7 +117,7 @@ extern Command newCommand(T_words words, T_redir redirec) {
   r->file=r->argv[0];
   return r;
 }
- int waitChild(int pid){
+ static int waitChild(int pid){
   int status;
   waitpid(pid, &status, 0);
   return status;
@@ -117,7 +128,6 @@ static int child(CommandRep r, int fg) {
   Jobs jobs=newJobs();
   if (builtin(r,&eof,jobs))
     return;
-  execRedir(r->redirec);
   execvp(r->argv[0],r->argv);
   ERROR("execvp() failed");
   exit(0);
@@ -126,28 +136,34 @@ static int child(CommandRep r, int fg) {
 extern void execCommand(Command command, Pipeline pipeline, Jobs jobs,
 			int *jobbed, int *eof, int fg) {
   CommandRep r = command;
-  if (fg && builtin(r, eof, jobs))
-    return;
+  if (fg && builtin(r, eof, jobs) && sizePipeline(pipeline) == 1){
+   //closeDescriptors(r->redirec);
+   return;
+  }
+    
   if (!*jobbed)
   {
     *jobbed = 1;
     addJobs(jobs, pipeline);
   }
-  //swapFd(pipeline);
+  incrementPipe(pipeline, command);
   int pid = fork();
   if (pid == -1)
     ERROR("fork() failed");
   if (pid == 0){
+    execRedir(r->redirec);
+    swapFd(pipeline, command);
     child(r, fg);
   }
   if (pid > 0) 
   {
+    closeDescriptors(r->redirec);
+    redirectPipe(pipeline, command); 
+
     if(fg){
       if(waitChild(pid) < 0)
         ERROR("Child exited abnormally");
     }
-    //swapFd(pipeline);
-    closeDescriptors(r->redirec);
   }
 }
 

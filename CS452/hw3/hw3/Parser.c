@@ -48,7 +48,9 @@ static T_words p_words() {
 
 static T_redir p_redir(){
   T_redir redirec = new_redir();
-
+  redirec->data[STDIN].file = NULL;
+  redirec->data[STDOUT].file = NULL;
+ 
   if(eat("<")){
     T_word fileIn = p_word();
     redirec->data[STDIN].file = fileIn;
@@ -96,16 +98,19 @@ static T_sequence p_sequence() {
     return 0;
   T_sequence sequence=new_sequence();
   sequence->pipeline=pipeline;
+  char *op = malloc(sizeof(char));
   if (eat("&")) {
-    sequence->op="&";
+    *op = '&';
+    sequence->op = op;
     sequence->sequence=p_sequence();
   }
-  if (eat(";")) {
-    sequence->op=";";
+  else if (eat(";")) {
+    *op = ';';
+    sequence->op = op;
     sequence->sequence=p_sequence();
   }
   else{
-    sequence->op = "";
+    sequence->op = op;
   }
   return sequence;
 }

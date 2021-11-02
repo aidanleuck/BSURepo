@@ -34,7 +34,7 @@ static void i_sequence(T_sequence t, Sequence sequence) {
     return;
   int fg = 1;
   
-  fg = strncmp(t->op, "&", sizeof(t->op)) ? 1 : 0;
+  fg = strcmp(t->op, "&") ? 1 : 0;
     
   Pipeline pipeline=newPipeline(fg);
   i_pipeline(t->pipeline,pipeline);

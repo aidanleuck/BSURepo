@@ -1,4 +1,0 @@
-ls
-grep Test < Test.txt > out.txt
-cat out.txt
-ls
