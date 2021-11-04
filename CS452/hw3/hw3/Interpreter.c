@@ -12,6 +12,7 @@ static Command i_command(T_command t);
 static void i_pipeline(T_pipeline t, Pipeline pipeline);
 static void i_sequence(T_sequence t, Sequence sequence);
 
+// Interprets a command 
 static Command i_command(T_command t) {
   if (!t)
     return 0;
@@ -22,6 +23,7 @@ static Command i_command(T_command t) {
   return command;
 }
 
+// Interprets a pipeline, adding nested pipelines as needed
 static void i_pipeline(T_pipeline t, Pipeline pipeline) {
   if (!t)
     return;
@@ -29,6 +31,7 @@ static void i_pipeline(T_pipeline t, Pipeline pipeline) {
   i_pipeline(t->pipeline,pipeline);
 }
 
+// Interprets each sequence
 static void i_sequence(T_sequence t, Sequence sequence) {
   if (!t)
     return;
@@ -42,6 +45,7 @@ static void i_sequence(T_sequence t, Sequence sequence) {
   i_sequence(t->sequence,sequence);
 }
 
+// Interprets the entire tree starting at sequences
 extern void interpretTree(Tree t, int *eof, Jobs jobs) {
   if (!t)
     return;

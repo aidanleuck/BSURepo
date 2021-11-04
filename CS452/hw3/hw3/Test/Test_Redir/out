@@ -1,0 +1,15 @@
+run
+shell
+Test_1Pipe
+Test_1PipeBI
+Test_2Pipe
+Test_bg
+Test_bgSeq
+Test_Fg
+Test_history
+Test_inputPipe
+Test_PipeSeq
+Test_pwd
+Test_Redir
+Test_seq
+Test_seqBg

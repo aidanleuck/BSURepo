@@ -12,8 +12,7 @@
 typedef struct {
   char *file;
   char **argv;
-  Redir redirec
-
+  Redir redirec;
 } *CommandRep;
 
 #define BIARGS CommandRep r, int *eof, Jobs jobs
@@ -66,7 +65,7 @@ BIDEFN(history){
   }
 }
 
-static int builtin(BIARGS) {
+static int builtin(BIARGS, int in, int out) {
   typedef struct {
     char *s;
     void (*f)(BIARGS);
@@ -81,8 +80,9 @@ static int builtin(BIARGS) {
   int i;
   for (i=0; builtins[i].s; i++)
     if (!strcmp(r->file,builtins[i].s)) {
-      //execRedir(r->redirec);
+      execRedir(r->redirec);
       builtins[i].f(r,eof,jobs);
+      closeDescriptors(r->redirec, in, out);
       return 1;
     }
   return 0;
@@ -117,54 +117,56 @@ extern Command newCommand(T_words words, T_redir redirec) {
   r->file=r->argv[0];
   return r;
 }
- static int waitChild(int pid){
-  int status;
-  waitpid(pid, &status, 0);
-  return status;
-}
 
-static int child(CommandRep r, int fg) {
-  int eof=0;
+static int child(CommandRep r, int fg, int in, int out) {
+  int eof=0;;
   Jobs jobs=newJobs();
-  if (builtin(r,&eof,jobs))
-    return;
+    if (builtin(r,&eof,jobs, in, out)){
+         exit(0);
+    }
   execvp(r->argv[0],r->argv);
   ERROR("execvp() failed");
   exit(0);
 }
 
+// Executes a command in the pipeline
 extern void execCommand(Command command, Pipeline pipeline, Jobs jobs,
 			int *jobbed, int *eof, int fg) {
   CommandRep r = command;
-  if (fg && builtin(r, eof, jobs) && sizePipeline(pipeline) == 1){
-   //closeDescriptors(r->redirec);
-   return;
+
+  // Keep track of original stdin/out
+  int descIn = dup(0);
+  int descOut = dup(1);
+  // Runs a built in if in the foreground
+  if(fg){
+    if(builtin(r, eof, jobs, descIn, descOut) && fg){
+      return;
+    }
   }
-    
+  // Execute a redirection if needed
+  execRedir(r->redirec);
+  
+  // Adds job to queue
   if (!*jobbed)
   {
     *jobbed = 1;
     addJobs(jobs, pipeline);
   }
-  incrementPipe(pipeline, command);
+
   int pid = fork();
   if (pid == -1)
     ERROR("fork() failed");
-  if (pid == 0){
-    execRedir(r->redirec);
-    swapFd(pipeline, command);
-    child(r, fg);
+  else if (pid == 0){
+    child(r, fg, descIn, descOut);
   }
-  if (pid > 0) 
-  {
-    closeDescriptors(r->redirec);
-    redirectPipe(pipeline, command); 
-
+  else 
+  { 
     if(fg){
-      if(waitChild(pid) < 0)
-        ERROR("Child exited abnormally");
+      wait(NULL);
     }
   }
+  closeDescriptors(r->redirec, descIn, descOut);
+  
 }
 
 extern void freeCommand(Command command) {

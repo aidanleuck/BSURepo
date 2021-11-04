@@ -1,0 +1,5 @@
+pwd
+pwd > out.txt
+ls
+vi out.txt
+pwd
