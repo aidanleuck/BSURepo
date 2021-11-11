@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/local/include",
+                "/lib/modules/5.4.0-90-generic/build/",
+                "/usr/src/linux-headers-5.4.0-90/include",
+                "/usr/src/linux-headers-5.4.0-90/arch/alpha/include",
+                "/usr/src/linux-headers-5.4.0-90/arch/arm64/include",
+                "/usr/src/linux-headers-5.4.0-90/arch/alpha/include/uapi",
+                "/usr/src/linux-headers-5.4.0-90-generic/arch/x86/include/generated",
+                "/usr/src/linux-headers-5.4.0-90-generic/include",
+                "/usr/src/linux-headers-5.4.0-90/arch/x86/include"
+            ],
+            "defines": [
+                "KBUILD_MODNAME=\"hello_module\"",
+                "__GNUC__",
+                "__KERNEL__"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
