@@ -82,6 +82,8 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     int tokenFound = 0;
 
     printk(KERN_INFO "%s: input: %s\n", DEVNAME, scan->s);
+    
+    printk(KERN_INFO "%s: sepSize: %zu\n", DEVNAME, scan->sepLength);
 
     while (numCharRead < charRequested && !tokenFound && scan->inputScanned < scan->inputSize)
     {
@@ -151,8 +153,7 @@ loff_t *f_pos)
     {
         scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
         strcpy(scan->s, line);
-         printk(KERN_INFO "%s: Writing to s, s is now: %s\n", DEVNAME, scan->s);
-        scan->s = line;
+        printk(KERN_INFO "%s: Writing to s, s is now: %s\n", DEVNAME, scan->s);
         scan->inputSize = len;
     }
 
