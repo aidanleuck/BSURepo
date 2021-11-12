@@ -57,7 +57,8 @@ static int release(struct inode *inode, struct file *filp){
 static int inSep(struct file *filp, char cmp)
 {
     Scanner* scan=filp->private_data;
-    for (int i = 0; i < scan->sepLength; i++)
+    int i;
+    for (i = 0; i < scan->sepLength; i++)
     {
         if (scan->sep[i] == cmp)
         {
@@ -68,7 +69,7 @@ static int inSep(struct file *filp, char cmp)
 }
 
 // Reads the current string and separate into tokens
-extern ssize_t read(struct file *filp, char *buf, ssize_t charRequested)
+extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *f_pos)
 {
     Scanner* scan = filp->private_data;
     char *currentString = kmalloc(sizeof(char) * (charRequested + 1), GFP_KERNEL);
@@ -103,6 +104,11 @@ extern ssize_t read(struct file *filp, char *buf, ssize_t charRequested)
     strncpy(buf, currentString, numCharRead);
     kfree(currentString);
 
+    if (copy_to_user(buf,scan->s,numCharRead)) {    
+        printk(KERN_ERR "%s: copy_to_user() failed\n",DEVNAME);    
+        return 0;  
+    } 
+
     if (tokenFound)
     {
         numCharRead = 0;
@@ -111,6 +117,9 @@ extern ssize_t read(struct file *filp, char *buf, ssize_t charRequested)
     {
         numCharRead = -1;
     }
+
+    
+
     return numCharRead;
 }
 
@@ -126,7 +135,7 @@ static long ioctl(struct file *filp,
     return 0;
 }
 
-extern ssize_t write(struct file *filp, char *line, ssize_t len)
+extern size_t write(struct file *filp, char *line, size_t len)
 {
     Scanner* scan = filp->private_data;
     if (!scan->ioctl)
@@ -186,7 +195,7 @@ static void __exit my_exit(void) {
   cdev_del(&device.cdev);
   unregister_chrdev_region(device.devno,1);
   kfree(device.sep);
-  printk(KERN_INFO "%s: exit\n",DEVNAME);
+  printk(KERN_INFO "%s: exit\n", DEVNAME);
 }
 
 module_init(my_init);
