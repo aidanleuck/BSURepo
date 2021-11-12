@@ -109,14 +109,14 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
 
     if (tokenFound)
     {
+        printk(KERN_INFO "%s: Found token\n", DEVNAME);
         numCharRead = 0;
     }
     else if (scan->inputScanned >= scan->inputSize)
     {
+        printk(KERN_INFO "%s: Reached EOF\n", DEVNAME);
         numCharRead = -1;
     }
-
-    
 
     return numCharRead;
 }
