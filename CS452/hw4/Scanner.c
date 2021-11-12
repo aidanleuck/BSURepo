@@ -54,9 +54,8 @@ static int release(struct inode *inode, struct file *filp){
 }
 
 // Determine if the current character is in the list of separators
-static int inSep(struct file *filp, char cmp)
+static int inSep(Scanner* scan, char cmp)
 {
-    Scanner* scan=filp->private_data;
     int i;
     for (i = 0; i < scan->sepLength; i++)
     {
@@ -93,7 +92,7 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
         strncat(currentString, &currChar, 1);
 
         // Checks if the current character was a token
-        tokenFound = inSep(filp, currChar);
+        tokenFound = inSep(scan, currChar);
 
         // Increments to next character in input
         scan->s = scan->s + 1;
