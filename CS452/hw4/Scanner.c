@@ -78,7 +78,7 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
         return -ENOMEM;
     }
 
-    ssize_t numCharRead = 0;
+    size_t numCharRead = 0;
     int tokenFound = 0;
 
     while (numCharRead < charRequested && !tokenFound && scan->inputScanned < scan->inputSize)
