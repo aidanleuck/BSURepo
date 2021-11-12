@@ -75,9 +75,6 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     Scanner* scan = filp->private_data;
     printk(KERN_INFO, "%s: sep: %s\n", DEVNAME, scan->sep);
     printk(KERN_INFO, "%s: input: %s\n", DEVNAME, scan->s);
-    printk(KERN_INFO, "%s: charRequested: %zu\n", DEVNAME, charRequested);
-    printk(KERN_INFO, "%s: sepSize: %zu\n", DEVNAME, scan->sepLength);
-    printk(KERN_INFO, "%s: inputSize: %zu\n", DEVNAME, scan->inputSize);
     char *currentString = kmalloc(sizeof(char) * (charRequested + 1), GFP_KERNEL);
     if(!currentString){
         printk(KERN_ERR, "%s: kmalloc failed", DEVNAME);
