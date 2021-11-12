@@ -123,6 +123,7 @@ static long ioctl(struct file *filp,
     {
         scan->ioctl = 0;
     }
+    return 0;
 }
 
 extern ssize_t write(struct file *filp, char *line, ssize_t len)
@@ -178,6 +179,7 @@ static int __init my_init(void)
         return err;
     }
     printk(KERN_INFO "%s: init\n", DEVNAME);
+    return 0;
 }
 
 static void __exit my_exit(void) {
