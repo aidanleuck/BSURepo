@@ -33,6 +33,42 @@ typedef struct
 
 static Device device;
 
+static struct file_operations ops = {
+    .open = open,
+    .release = release,
+    .read = read,
+    .unlocked_ioctl = ioctl,
+    .owner = THIS_MODULE};
+
+// Initializes the scanner with default values
+static int __init my_init(void)
+{
+    const char *defaultSep = ";,+-=!@./#$%&*: ";
+    int err;
+    device.sep = (char *)kmalloc(strlen(defaultSep) + 1, GFP_KERNEL);
+    if (!device.sep)
+    {
+        printk(KERN_ERR, "%s: kmalloc failed\n", DEVNAME);
+        return -ENOMEM;
+    }
+    strcpy(device.sep, defaultSep);
+
+    err = alloc_chrdev_region(&device.devno, 0, 1, DEVNAME);
+    if (err < 0)
+    {
+        printk(KERN_ERR, "%s: alloc_chrdev_region() failed\n", DEVNAME);
+        return err;
+    }
+    cdev_init(&device.cdev, &ops);
+    device.cdev.owner = THIS_MODULE;
+    err = cdev_add(&device.cdev, device.devno, 1);
+    if (err)
+    {
+        printk(KERN_ERR "%s: cdev_add() failed\n", DEVNAME);
+        return err;
+    }
+    printk(KERN_INFO "%s: init\n", DEVNAME);
+}
 
 static int open(struct inode *inode, struct file *filp)
 {
@@ -94,7 +130,7 @@ extern ssize_t read(struct file *filp, char *buf, ssize_t charRequested)
         strncat(currentString, &currChar, 1);
 
         // Checks if the current character was a token
-        tokenFound = inSep(filp, currChar);
+        tokenFound = inSep(scan, currChar);
 
         // Increments to next character in input
         scan->s = scan->s + 1;
@@ -147,44 +183,6 @@ extern ssize_t write(struct file *filp, char *line, ssize_t len)
 
     return len;
 }
-
-static struct file_operations ops = {
-    .open = open,
-    .release = release,
-    .read = read,
-    .unlocked_ioctl = ioctl,
-    .owner = THIS_MODULE};
-
-// Initializes the scanner with default values
-static int __init my_init(void)
-{
-    const char *defaultSep = ";,+-=!@./#$%&*: ";
-    int err;
-    device.sep = (char *)kmalloc(strlen(defaultSep) + 1, GFP_KERNEL);
-    if (!device.sep)
-    {
-        printk(KERN_ERR, "%s: kmalloc failed\n", DEVNAME);
-        return -ENOMEM;
-    }
-    strcpy(device.sep, defaultSep);
-
-    err = alloc_chrdev_region(&device.devno, 0, 1, DEVNAME);
-    if (err < 0)
-    {
-        printk(KERN_ERR, "%s: alloc_chrdev_region() failed\n", DEVNAME);
-        return err;
-    }
-    cdev_init(&device.cdev, &ops);
-    device.cdev.owner = THIS_MODULE;
-    err = cdev_add(&device.cdev, device.devno, 1);
-    if (err)
-    {
-        printk(KERN_ERR "%s: cdev_add() failed\n", DEVNAME);
-        return err;
-    }
-    printk(KERN_INFO "%s: init\n", DEVNAME);
-}
-
 static void __exit my_exit(void) {
   cdev_del(&device.cdev);
   unregister_chrdev_region(device.devno,1);
