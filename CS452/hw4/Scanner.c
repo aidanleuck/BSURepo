@@ -143,6 +143,7 @@ loff_t *f_pos)
     {
         scan->sep = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
         strcpy(scan->sep, line);
+        printk(KERN_INFO "%s: Writing sep, sep is now: %s\n", DEVNAME, scan->sep);
         scan->sepLength = len;
         scan->ioctl = 1;
     }
@@ -150,6 +151,7 @@ loff_t *f_pos)
     {
         scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
         strcpy(scan->s, line);
+         printk(KERN_INFO "%s: Writing to s, s is now: %s\n", DEVNAME, scan->s);
         scan->s = line;
         scan->inputSize = len;
     }
