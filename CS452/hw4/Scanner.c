@@ -60,6 +60,7 @@ static int inSep(struct file *filp, char cmp)
     int i;
     for (i = 0; i < scan->sepLength; i++)
     {
+        printk(KERN_INFO, "%s: cmp: %c sep: %c", DEVNAME, cmp, scan->sep[i] );
         if (scan->sep[i] == cmp)
         {
             return 1;
