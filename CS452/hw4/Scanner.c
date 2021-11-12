@@ -135,9 +135,9 @@ static long ioctl(struct file *filp,
     return 0;
 }
 
-extern size_t write(struct file *filp, char *line, 
+extern ssize_t write(struct file *filp, char *line, 
 size_t len,
-loff_t *fpos)
+loff_t *f_pos)
 {
     Scanner* scan = filp->private_data;
     if (!scan->ioctl)
