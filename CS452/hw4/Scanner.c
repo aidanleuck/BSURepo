@@ -82,6 +82,8 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     size_t numCharRead = 0;
     int tokenFound = 0;
 
+    printk(KERN_INFO "%s: input: %s\n", DEVNAME, scan->s);
+
     while (numCharRead < charRequested && !tokenFound && scan->inputScanned < scan->inputSize)
     {
         // Gets the current character in input
@@ -115,7 +117,6 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     }
     else if (scan->inputScanned >= scan->inputSize)
     {
-        printk(KERN_INFO "%s: input: %s\n", DEVNAME, scan->s);
         numCharRead = -1;
     }
 
