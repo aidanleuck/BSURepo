@@ -1,8 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
-
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
