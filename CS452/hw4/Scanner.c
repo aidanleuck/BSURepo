@@ -73,6 +73,7 @@ static int inSep(struct file *filp, char cmp)
 extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *f_pos)
 {
     Scanner* scan = filp->private_data;
+    printk(KERN_INFO, "%s: sep: %s\n charRequested: %d\n input: %s\n sepLength: %d\n inputLength: %d\n", DEVNAME, scan->sep, charRequested, scan->s, scan->sepLength, scan->inputSize);
     char *currentString = kmalloc(sizeof(char) * (charRequested + 1), GFP_KERNEL);
     if(!currentString){
         printk(KERN_ERR, "%s: kmalloc failed", DEVNAME);
