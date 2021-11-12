@@ -21,8 +21,8 @@ uninstall:
 	sudo rmmod $(module) || true
 	sudo rm -f /dev/$(name) || true
 
-TryHello: TryScanner.c
+TryScanner: TryScanner.c
 	gcc -o $@ $< -Wall -g
 
-try: TryHello
+try: TryScanner
 	./$<

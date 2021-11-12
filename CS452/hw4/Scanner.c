@@ -107,8 +107,6 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     } 
     kfree(currentString);
 
-    
-
     if (tokenFound)
     {
         numCharRead = 0;
