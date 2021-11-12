@@ -135,7 +135,7 @@ static long ioctl(struct file *filp,
     return 0;
 }
 
-extern ssize_t write(struct file *filp, char *line, 
+extern ssize_t write(struct file *filp, const char *line, 
 size_t len,
 loff_t *f_pos)
 {
