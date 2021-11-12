@@ -101,13 +101,13 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
         // Increments how much of the input has been scanned
         scan->inputScanned++;
     }
-    strncpy(buf, currentString, numCharRead);
-    kfree(currentString);
-
-    if (copy_to_user(buf,scan->s,numCharRead)) {    
+    if (copy_to_user(buf,currentString,numCharRead)) {    
         printk(KERN_ERR "%s: copy_to_user() failed\n",DEVNAME);    
         return 0;  
     } 
+    kfree(currentString);
+
+    
 
     if (tokenFound)
     {
