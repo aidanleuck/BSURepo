@@ -140,12 +140,15 @@ loff_t *f_pos)
     Scanner* scan = filp->private_data;
     if (!scan->ioctl)
     {
-        scan->sep = line;
+        scan->sep = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
+        strcpy(scan->sep, line);
         scan->sepLength = len;
         scan->ioctl = 1;
     }
     else
     {
+        scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
+        strcpy(scan->s, line);
         scan->s = line;
         scan->inputSize = len;
     }
