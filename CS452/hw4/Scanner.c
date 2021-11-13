@@ -90,12 +90,14 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
         // Gets the current character in input
         char currChar = *scan->s;
 
-        // Build the string by concatenating the current character
-        strncat(currentString, &currChar, 1);
-
         // Checks if the current character was a token
         tokenFound = inSep(scan, currChar);
 
+        // If not a separator add it to our string
+        if(!tokenFound){
+            strncat(currentString, &currChar, 1);
+        }
+       
         // Increments to next character in input
         scan->s = scan->s + 1;
 
@@ -118,6 +120,7 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     }
     else if (scan->inputScanned >= scan->inputSize)
     {
+        scan->inputScanned = 0;
         numCharRead = -1;
     }
 
@@ -155,6 +158,7 @@ loff_t *f_pos)
         strcpy(scan->s, line);
         printk(KERN_INFO "%s: Writing to s, s is now: %s\n", DEVNAME, scan->s);
         scan->inputSize = len;
+        scan->inputScanned = 0;
     }
 
     return len;
