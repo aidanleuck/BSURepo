@@ -43,6 +43,7 @@ static int open(struct inode *inode, struct file *filp)
     }
     strcpy(scanner->sep, device.sep);
     scanner->sepLength = strlen(device.sep);
+    scanner->ioctl = 1;
     filp->private_data = scanner;
     return 0;
 }
