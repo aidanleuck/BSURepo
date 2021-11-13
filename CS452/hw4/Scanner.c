@@ -86,10 +86,10 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     printk(KERN_INFO "%s: sepSize: %zu\n", DEVNAME, scan->sepLength);
 
 
-    while (numCharRead < charRequested && !tokenFound)
+    while (numCharRead < charRequested && !tokenFound && scan->inputScanned < scan->inputSize)
     {
         // Gets the current character in input
-        char currChar = (scan->s[scan->inputScanned + 1]);
+        char currChar = (scan->s[scan->inputScanned]);
 
         // Checks if the current character was a token
         tokenFound = inSep(scan, currChar);
@@ -111,15 +111,10 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     } 
     kfree(currentString);
 
-    if(!tokenFound){
-        if(buf[0] == NULL){
-            numCharRead = -1;
-            scan->inputScanned = 0;
-        }
-        else{
-            numCharRead = 0;
-        }
+    if(scan->inputScanned == scan->inputSize){
+        numCharRead = -1;
     }
+
     return numCharRead;
 }
 
