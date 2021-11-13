@@ -114,8 +114,7 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     if(scan->inputScanned == scan->inputSize && numCharRead == 0){
         numCharRead = -1;
     }
-    if(tokenFound && numCharRead == 1){
-        numCharRead = 0;
+    if(tokenFound && numCharRead == 0){
         scan->inputScanned++;
     }
 
