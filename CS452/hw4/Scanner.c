@@ -85,7 +85,6 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     
     printk(KERN_INFO "%s: sepSize: %zu\n", DEVNAME, scan->sepLength);
 
-
     while (numCharRead < charRequested && !tokenFound && scan->inputScanned < scan->inputSize)
     {
         // Gets the current character in input
@@ -95,15 +94,16 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
         tokenFound = inSep(scan, currChar);
 
         // If not a separator add it to our string
-        if(!tokenFound){
+        if (!tokenFound)
+        {
             strncat(currentString, &currChar, 1);
 
             // Increments the number of characters in buffer
             numCharRead++;
-        }
 
-        // Increments how much of the input has been scanned
-        scan->inputScanned++;
+            // Increments how much of the input has been scanned
+            scan->inputScanned++;
+        }
     }
     if (copy_to_user(buf,currentString,numCharRead)) {    
         printk(KERN_ERR "%s: copy_to_user() failed\n",DEVNAME);    
@@ -111,8 +111,12 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     } 
     kfree(currentString);
 
-    if(scan->inputScanned == scan->inputSize){
+    if(scan->inputScanned == scan->inputSize && numCharRead == 0){
         numCharRead = -1;
+    }
+    if(tokenFound && numCharRead == 1){
+        numCharRead = 0;
+        scan->inputScanned++;
     }
 
     return numCharRead;
