@@ -21,10 +21,11 @@ uninstall:
 	sudo rmmod $(module) || true
 	sudo rm -f /dev/$(name) || true
 
+Force: 
 TryScanner: TryScanner.c
 	gcc -o $@ $< -Wall -g
 
-Tests: Tests/TestRunner.c
+Tests: Tests/TestRunner.c Force
 	gcc -o Tests/Test Tests/TestRunner.c -Wall -g
 
 try: TryScanner
