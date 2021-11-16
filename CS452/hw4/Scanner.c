@@ -183,6 +183,7 @@ loff_t *f_pos)
     {
         scan->sep = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
         if(copy_from_user(scan->sep, line, len) < 0){
+            printk(KERN_ERR, "%s: write separators failed", DEVNAME);
             len = -1;
         }
         scan->sepLength = len;
@@ -192,6 +193,7 @@ loff_t *f_pos)
     {
         scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
         if(copy_from_user(scan->s, line, len) < 0){
+            printk(KERN_ERR, "%s: write failed", DEVNAME);
             len = -1;
         }
         scan->inputSize = len;
