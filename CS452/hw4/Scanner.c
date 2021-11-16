@@ -182,14 +182,18 @@ loff_t *f_pos)
     if (!scan->ioctl)
     {
         scan->sep = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
-        strcpy(scan->sep, line);
+        if(copy_from_user(scan->sep, line, len) < 0){
+            len = -1;
+        }
         scan->sepLength = len;
         scan->ioctl = 1;
     }
     else
     {
         scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
-        strcpy(scan->s, line);
+        if(copy_from_user(scan->s, line, len) < 0){
+            len = -1;
+        }
         scan->inputSize = len;
         scan->inputScanned = 0;
     }
