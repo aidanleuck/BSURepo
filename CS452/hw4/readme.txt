@@ -15,9 +15,9 @@ $ make install  # Installs the driver into kernel memory
 $ make try      # Runs and compiles TryScanner executable
 
 This scanner implements a rudimentary test suite leveraging the shell script given in the previous assignment.
-The shell script has been lightly modified to work with this assignment because there is an extra file leveraged 
-called args. The args file is used to pass separators to each individual test run. The word DEFAULT is reserved argument
-that means the test will leverage the default arguments in the scanner. The rest of the suite works the same as the previous
+The shell script has been lightly modified to work with this assignment because there is an extra file used
+called args. The args file is used to pass separators to each individual test run. The word DEFAULT is a reserved argument
+that means the test will use the default arguments in the scanner. The rest of the suite works the same as the previous
 assignment using inp to redirect stdin and comparing exp file to the output file.
 
 Arguments files are formatted as follows:
@@ -29,11 +29,13 @@ type the number of characters in the argument you are passing. An example could 
 :   # Separator
 1   # Number of separators
 
-In order to run the test suite make sure the driver is installed given the steps above.
+In order to run the test suite make sure the driver is installed using the steps above.
 Next from the main directory 
 
 $ make Tests    # Compile test runner
 $ cd Tests      
 $ ./run         # Runs test suite
 
+Note to grader: Test_Null fails because strlen is not properly returned when writing to the scanner. This is an issue with the test runner,
+not the scanner. Null characters have been tested manually and are working as expected.
 
