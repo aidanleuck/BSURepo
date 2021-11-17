@@ -68,7 +68,6 @@ static int open(struct inode *inode, struct file *filp)
 static int release(struct inode *inode, struct file *filp){
     Scanner* scanner = filp->private_data;
     kfree(scanner->sep);
-    kfree(scanner->s);
     kfree(scanner);
     return 0;
 }
@@ -102,6 +101,7 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
 
     // Allocate enough memory to hold the number of characters requested
     char *currentString = kmalloc(sizeof(char) * (charRequested + 1), GFP_KERNEL);
+    memset(currentString, 0, sizeof(char) * charRequested + 1);
     if(!currentString){
         printk(KERN_ERR, "%s: kmalloc failed", DEVNAME);
         return -ENOMEM;
@@ -121,7 +121,8 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
         // If not a separator add it to our string
         if (!tokenFound)
         {
-            strncat(currentString, &currChar, 1);
+            currentString[numCharRead] = currChar;
+            currentString[numCharRead + 1] = '\0';
 
             // Increments the number of characters in buffer
             numCharRead++;
@@ -141,6 +142,7 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
     // Sets numcharRead accordingly
     if(scan->inputScanned == scan->inputSize && numCharRead == 0){
         numCharRead = -1;
+        kfree(scan->s);
     }
     if(tokenFound && numCharRead == 0){
         scan->inputScanned++;
@@ -181,7 +183,9 @@ loff_t *f_pos)
     // Check if ioctl set or not
     if (!scan->ioctl)
     {
+        kfree(scan->sep);
         scan->sep = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
+        scan->sep = memset(scan->sep, 0, sizeof(char)* (len + 1));
         if(copy_from_user(scan->sep, line, len) < 0){
             printk(KERN_ERR, "%s: write separators failed", DEVNAME);
             len = -1;
@@ -192,6 +196,7 @@ loff_t *f_pos)
     else
     {
         scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
+        scan->s = memset(scan->s, 0, sizeof(char) * (len + 1));
         if(copy_from_user(scan->s, line, len) < 0){
             printk(KERN_ERR, "%s: write failed", DEVNAME);
             len = -1;
