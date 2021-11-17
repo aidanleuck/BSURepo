@@ -1,20 +1,16 @@
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/slab.h>
-#include <linux/fs.h>
-#include <linux/uaccess.h>
-#include <linux/cdev.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("BSU CS 452 HW4");
-MODULE_AUTHOR("<aidanleuck@u.boisestate.edu>");
+#define ERR(s) err(s,__FILE__,__LINE__)
 
+static void err(char *s, char *file, int line) {
+  fprintf(stderr,"%s:%d: %s\n",file,line,s);
+  exit(1);
+}
 // Per device struct
 typedef struct
 {
-    dev_t devno;
-    struct cdev cdev;
     char *sep;      // Default list of separators
 } Device;
 
@@ -29,46 +25,40 @@ typedef struct
     size_t inputScanned; // How much of the input has been scanned so far
 } Scanner;
 
-static Device device;
-
 // <summary>Creates an instance of the scanner</summary>
 // <param name = "inode">Inode associated with the driver</param>
 // <param name = "filp">Holds private data about an instance</param>
 // <returns>File descriptor to the scanner</returns>
-static int open(struct inode *inode, struct file *filp)
+static Scanner* open(Device* device)
 {
     // Allocates memory for the scanner
-    Scanner* scanner = (Scanner*)kmalloc(sizeof(*scanner), GFP_KERNEL);
+    Scanner* scanner = (Scanner*)malloc(sizeof(*scanner));
     if(!scanner){
-        printk(KERN_ERR, "%s: kmalloc() failed\n", DEVNAME);
-        return -ENOMEM;
+        printf("%s","failed to malloc scanner");
     } 
 
     // Allocates memory for the default list of separators
-    scanner->sep = kmalloc(strlen(device.sep) + 1, GFP_KERNEL);
+    scanner->sep = malloc(strlen(device->sep) + 1);
     if(!scanner->sep){
-        printk(KERN_ERR, "%s: kmalloc() failed\n", DEVNAME);
-        return -ENOMEM;
+      printf("%s", "Malloc failed");
     }
 
     // Copies the default list to the scanner instance
-    strcpy(scanner->sep, device.sep);
-    scanner->sepLength = strlen(device.sep);
+    strcpy(scanner->sep, device->sep);
+    scanner->sepLength = strlen(device->sep);
 
     // Sets ioctl to 1 by default (next write will not be to separators)
     scanner->ioctl = 1;
-    filp->private_data = scanner;
-    return 0;
+    return scanner;
 }
 
 // <summary>Frees instance of a scanner</summary>
 // <param name = "inode">Inode associated with the driver</param>
 // <param name = "filp">Holds private data about an instance</param>
 // <returns>Whether release was succesful</returns>
-static int release(struct inode *inode, struct file *filp){
-    Scanner* scanner = filp->private_data;
-    kfree(scanner->sep);
-    kfree(scanner);
+static int release(Scanner* scanner){
+    free(scanner->sep);
+    free(scanner);
     return 0;
 }
 
@@ -95,16 +85,13 @@ static int inSep(Scanner* scan, char cmp)
 // <param name = "charRequested">Number of characters requested by user</param>
 // <param name = "f_pos">File offset to start at</param>
 // <returns>Number of characters read, EOF, or 0 if reading a token</returns>
-extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *f_pos)
+extern ssize_t read(Scanner* scan, char *buf, size_t charRequested)
 {
-    Scanner* scan = filp->private_data;
-
     // Allocate enough memory to hold the number of characters requested
-    char *currentString = kmalloc(sizeof(char) * (charRequested + 1), GFP_KERNEL);
+    char *currentString = (char*) malloc(sizeof(char) * (charRequested + 1));
     memset(currentString, 0, sizeof(char) * charRequested + 1);
     if(!currentString){
-        printk(KERN_ERR, "%s: kmalloc failed", DEVNAME);
-        return -ENOMEM;
+        printf("%s", "Scanner failed");
     }
 
     size_t numCharRead = 0; // Keep track of number of characters read
@@ -131,18 +118,13 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
             scan->inputScanned++;
         }
     }
-
-    // Copies buffer back to user
-    if (copy_to_user(buf,currentString,numCharRead)) {    
-        printk(KERN_ERR "%s: copy_to_user() failed\n",DEVNAME);    
-        return 0;  
-    } 
-    kfree(currentString);
+    strcpy(buf, currentString);
+    free(currentString);
 
     // Sets numcharRead accordingly
     if(scan->inputScanned == scan->inputSize && numCharRead == 0){
         numCharRead = -1;
-        kfree(scan->s);
+        free(scan->s);
     }
     if(tokenFound && numCharRead == 0){
         scan->inputScanned++;
@@ -156,11 +138,10 @@ extern ssize_t read(struct file *filp, char *buf, size_t charRequested, loff_t *
 // <param name = "cmd">command to execute</param>
 // <param name = "arg">arg to execute</param>
 // <returns>0</returns>
-static long ioctl(struct file *filp,
+static long ioctl(Scanner* scan,
                   unsigned int cmd,
                   unsigned long arg)
 {
-    Scanner* scan = filp->private_data;
     if (cmd == 0 && arg == 0)
     {
         scan->ioctl = 0;
@@ -174,33 +155,24 @@ static long ioctl(struct file *filp,
 // <param name = "len">Length of the input</param>
 // <param name = "f_pos">Offset to start reading from</param>
 // <returns>Number of characters written to device</returns>
-extern ssize_t write(struct file *filp, const char *line, 
-size_t len,
-loff_t *f_pos)
+extern ssize_t write(Scanner* scan, const char *line, 
+size_t len)
 {
-    Scanner* scan = filp->private_data;
-
     // Check if ioctl set or not
     if (!scan->ioctl)
     {
-        kfree(scan->sep);
-        scan->sep = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
+        free(scan->sep);
+        scan->sep = malloc(sizeof(char) * (len + 1));
         scan->sep = memset(scan->sep, 0, sizeof(char)* (len + 1));
-        if(copy_from_user(scan->sep, line, len) != 0){
-            printk(KERN_ERR, "%s: write separators failed", DEVNAME);
-            len = -1;
-        }
+        strcpy(scan->sep, line);
         scan->sepLength = len;
         scan->ioctl = 1;
     }
     else
     {
-        scan->s = kmalloc(sizeof(char) * (len + 1), GFP_KERNEL);
+        scan->s = malloc(sizeof(char) * (len + 1));
         scan->s = memset(scan->s, 0, sizeof(char) * (len + 1));
-        if(copy_from_user(scan->s, line, len) != 0){
-            printk(KERN_ERR, "%s: write failed", DEVNAME);
-            len = -1;
-        }
+        strcpy(scan->s, line);
         scan->inputSize = len;
         scan->inputScanned = 0;
     }
@@ -208,55 +180,54 @@ loff_t *f_pos)
     return len;
 }
 
-// Valid ops on device driver
-static struct file_operations ops = {
-    .open = open,
-    .release = release,
-    .read = read,
-    .write = write,
-    .unlocked_ioctl = ioctl,
-    .owner = THIS_MODULE};
-
 // Initializes the scanner with default values
-static int __init my_init(void)
+static Device* my_init(void)
 {
+    Device* device = malloc(sizeof(*device));
     // List of default separators
     const char *defaultSep = ";,+-=!@./#$%&*: ";
-    int err;
-    device.sep = (char *)kmalloc(strlen(defaultSep) + 1, GFP_KERNEL);
-    if (!device.sep)
+    device->sep = (char *)malloc(strlen(defaultSep) + 1);
+    if (!device->sep)
     {
-        printk(KERN_ERR, "%s: kmalloc failed\n", DEVNAME);
-        return -ENOMEM;
+        printf("kmalloc failed\n");
     }
-    strcpy(device.sep, defaultSep);
+    strcpy(device->sep, defaultSep);
 
-    err = alloc_chrdev_region(&device.devno, 0, 1, DEVNAME);
-    if (err < 0)
-    {
-        printk(KERN_ERR, "%s: alloc_chrdev_region() failed\n", DEVNAME);
-        return err;
-    }
-    cdev_init(&device.cdev, &ops);
-    device.cdev.owner = THIS_MODULE;
-    err = cdev_add(&device.cdev, device.devno, 1);
-    if (err)
-    {
-        printk(KERN_ERR "%s: cdev_add() failed\n", DEVNAME);
-        return err;
-    }
-    printk(KERN_INFO "%s: init\n", DEVNAME);
-    return 0;
+    return device;
 }
 
 // Handles exit of the device driver
-static void __exit my_exit(void) {
-  cdev_del(&device.cdev);
-  unregister_chrdev_region(device.devno,1);
-  kfree(device.sep);
-  printk(KERN_INFO "%s: exit\n", DEVNAME);
+static void my_exit(Device* device) {
+  free(device->sep);
+  free(device);
 }
+int main(){
+    Device* device = my_init();
+    Scanner *scanner = open(device);
 
-module_init(my_init);
-module_exit(my_exit);
+enum {max=100};
+  char buf[max+1];
+  int len;
 
+
+  if (ioctl(scanner,0,0))
+    ERR("ioctl() for separators failed");
+  if (write(scanner,":",1)!=1)
+    ERR("write() of separators failed");
+
+  char *line;
+  while (scanf("%m[^\n]\n",&line)!=EOF) {
+    len=strlen(line);
+    if (len!=write(scanner,line,len))
+      ERR("write() of data failed");
+    free(line);
+    while ((len=read(scanner,buf,max))>=0) {
+      buf[len]=0;
+      printf("%s%s",buf,(len ? "" : "\n"));
+    }
+  }
+
+  release(scanner);
+  my_exit(device);
+  return 0;
+}
