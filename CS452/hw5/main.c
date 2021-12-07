@@ -3,12 +3,14 @@
 #include <string.h>
 #include "utils.h"
 #include "balloc.h"
-static Balloc bp=0;
-
+#include "bitmap.h"
+#include "freelist.h"
 
 int main(){
- bp=bp ? bp : bnew(4096,4,12);
- printf("HELLO");
+Balloc b = bnew(4096, 2, 12);
+void* addr = balloc(b, 100);
+void* addr2 = balloc(b, 200);
+
 
 }
 
