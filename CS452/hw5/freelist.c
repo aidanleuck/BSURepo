@@ -66,10 +66,42 @@ extern void *freelistalloc(FreeList f, void *base, int e, int l, int u){
     return allocatedAddress;
 }
 extern void printNode(void* node){
-  
+  Next* next = (Next*)node;
+  while(next != NULL){
+      printf("%p -> %p\n", next, next->next);
+      next = next->next;
+  }
 }
 extern void freelistfree(FreeList f, void *base, void *mem, int e, int l){
+    FreeListSpace* level = (FreeListSpace*) &list[e-l];
     
+    void* buddy = buddyinv(base, mem, e);
+    Next* nxtNode = (Next*)level->head;
+    Next* prevNode = NULL;
+    while(nxtNode != NULL){
+        if(nxtNode == buddy){
+            break;
+        }
+        prevNode = nxtNode;
+        nxtNode = nxtNode->next;
+    }
+    if(nxtNode != NULL){
+        bitmapclr(level->map, base, mem, e);
+        if(nxtNode == level->head){
+            level->head = nxtNode->next;
+        }
+        else{
+            prevNode->next = nxtNode->next;
+        }
+        void* buddyBase = buddyclr(base, mem, e);
+        freelistfree(f, base, buddyBase, e+1, l);
+    }
+    else{
+        void* temp = level->head;
+        Next* memN = (Next*)mem;
+        memN->next = temp;
+        level->head = mem;
+    }
 }
 extern int freelistsize(FreeList f, void *base, void *mem, int l, int u)
 {
@@ -89,7 +121,12 @@ extern int freelistsize(FreeList f, void *base, void *mem, int l, int u)
     return size;
 }
 extern void freelistprint(FreeList f, unsigned int size, int l, int u){
-   
-   
+   FreeListSpace *rep = (FreeListSpace *)f;  
+   int numLists = u-l;
+   for(int i=0; i<=numLists; i++){
+       printf("Level: %d", i);
+       printNode(rep[i].head);
+       bitmapprint(rep[i].map, size, e2size(i+l));
+   }
 }
 
