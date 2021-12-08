@@ -5,6 +5,7 @@
 
 #include "freelist.h"
 #include "utils.h"
+#define MAX_LEVELS 20
 #include "bitmap.h"
 
 // Struct to hold freelists
@@ -18,7 +19,7 @@ typedef struct{
     void* next;
 }FreeBlock;
 
-static FreeListSpace list[];
+static FreeListSpace list[20];
 
 // <summary>Initializes a new freelist</summary>
 // <param name = "size">Size of the initial map</param>
@@ -28,6 +29,7 @@ static FreeListSpace list[];
 // <returns>A void* to a allocated freelist</returns>
 extern FreeList freelistnew(unsigned int size, void* base, int l, int u){
     int numLists = u-l;
+    
     memset(&list, 0, sizeof(FreeListSpace) *numLists);
 
     // Allocates each level a bitmap
