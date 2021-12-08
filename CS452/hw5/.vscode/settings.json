@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "math.h": "c",
-        "freelist.h": "c",
-        "balloc.h": "c"
-    }
-}

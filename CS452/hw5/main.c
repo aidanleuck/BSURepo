@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -66,7 +65,5 @@ int main() {
    // Mixed rem tests
    Test_remMiddle_GetHeadTail();
    Test_remMiddle_GetHeadTail();
-
-
 }
 

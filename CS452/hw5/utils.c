@@ -21,31 +21,43 @@ extern void* mmalloc(size_t size){
    return mapMemory;
 
 }
+
+// Gets the size representation for e
 extern unsigned int e2size(int e){
     return 1 << e;
 }
 
+// Gets the e representation for size
 extern int size2e(unsigned int size){
     return ceil(log(size)/log(2));
 }
+
+// Sets a bit
 extern void bitset(unsigned char *p, int bit){
     unsigned char mask = 1 << bit;
     *p |= mask;
-    
 }
+
+// Clears a bit
 extern void bitclr(unsigned char *p, int bit){
     unsigned char mask = ~(1 << bit);
     *p &= mask;
 
 }
+
+// Inverts a bit
 extern void bitinv(unsigned char *p, int bit){
     unsigned char mask = 1 << bit;
     *p^=mask;
 
 }
+
+// Tests a bit
 extern int bittst(unsigned char *p, int bit){
     return (*p >> bit) & (1);
 }
+
+// Sets the bit to retrieve buddy
 extern void *buddyset(void *base, void *mem, int e){
     unsigned long memoryInt = (unsigned long)mem - (unsigned long)base;
     unsigned long mask = 1 << e;
@@ -53,12 +65,16 @@ extern void *buddyset(void *base, void *mem, int e){
     return base + memoryInt;
 
 }
+
+// clears a bit to retrieve buddy
 extern void *buddyclr(void *base, void *mem, int e){
     unsigned long memoryInt = (unsigned long)mem - (unsigned long)base;
     unsigned long mask = ~(1 << e);
     memoryInt&=mask;
     return base + memoryInt;
 }
+
+// Inverts a bit to retrive left/right buddy
 extern void *buddyinv(void *base, void *mem, int e){
     unsigned long memoryInt = (unsigned long)mem - (unsigned long)base;
     unsigned long mask = 1 << e;
@@ -66,6 +82,8 @@ extern void *buddyinv(void *base, void *mem, int e){
     return base + memoryInt;
 
 }
+
+// Tests bit of a buddy
 extern int buddytst(void *base, void *mem, int e){
     unsigned long memoryInt = (unsigned long)mem - (unsigned long)base;
     memoryInt = (memoryInt >> e) & 1;

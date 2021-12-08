@@ -35,6 +35,9 @@ extern Balloc bnew(unsigned int size, int l, int u){
     r->lower=l;
     return (Balloc)r;
 }
+
+// Uses allocater to allocate a block
+// returns address of block to user
 extern void *balloc(Balloc pool, unsigned int size){
     unsigned int eSize = e2size(size2e(size));
     unsigned int e = size2e(eSize);
@@ -42,11 +45,13 @@ extern void *balloc(Balloc pool, unsigned int size){
     Rep r = (Rep)pool;
     int currMem = r->baseAddr;
     void* bAddress = NULL;
+    // Calculates requested e
     e = e < r->lower ? r->lower : e;
     bAddress = freelistalloc(r->list, r->baseAddr, e, r->lower, r->upper);
     return bAddress;
-
 }
+
+// Frees a block and adds back to freelist
 extern void bfree(Balloc pool, void *mem){
    Rep r = (Rep)pool;
 

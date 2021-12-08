@@ -1,0 +1,24 @@
+Aidan Leuck
+CS452 Operating System
+Jim Buffenbarger
+Homework 5: Memory Hole
+
+Description:
+
+This module implements a memory allocator based on the buddy system. It does t
+his through the use of a freelist, bitmap and other various utility functions
+that help us calculate a buddies address. This module should be a rudimentary replacement for malloc.
+
+Testing:
+
+In order to test and ensure correctness of this module, I did manual testing in a main file to ensure things we were working in a small scale environment. In order to fully test the module, I linked it with my deq.c module which is includedin this submission and excercised my 30 test cases that I wrote in hw1. All test cases passed and I was able to determine that all blocks were properly freed and coalesced by using GDB.
+
+Run Instructions
+
+In order to run simply type:
+
+$ make
+$ ./hw5
+
+This should start by suite of tests from the deq homework assignment and you will be able to see that they all pass
+
