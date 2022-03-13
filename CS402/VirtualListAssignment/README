@@ -1,0 +1,8 @@
+Aidan Leuck
+CS 402 Virtualized List Assignment
+Steven Cutchin
+February 16 2021
+
+This list assignment builds on the previous list assignment by adding the functionality of a virtualized list. The app now has the ability to load and save the list from a remote server. The default behavior is that the list contents are overwritten on save and the remote list is appended to the existing list on load. This led to an interesting problem when doing the assignment. Because a user can load the list multiple times it will append duplicate keys to the list. To get around this I made sure to check if the key was already in the list before adding. This is not a great way of doing it since it takes O(n^2) in order to load the list. N items to add to the list * N items in the list to compare to. But given the structure of our list item, there is not an easy way around this without changing the list to be a dictionary rather than an array. 
+
+Other than the duplicate issue, the rest of the assignment was pretty straight forward and easy to implement.

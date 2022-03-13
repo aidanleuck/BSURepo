@@ -1,0 +1,8 @@
+Aidan Leuck
+CS 402 List Assignment
+Steven Cutchin
+February 2 2021
+
+This app implements a rudimentary list with simple functions. In order to add to the list you can type an item in the text field and then press the plus button. You can delete by selecting an item or multiple items and pressing the minus button. You can join items together by selecting multiple items and pressing join. This will combine the items together with each item comma separated. You can also unjoin lists by using the split button. This will take each comma separated item and create its own entry.
+
+The logic for adding, removing, splitting, and joining was pretty easy for me to complete and I only ran into one bug when testing. The bug was pretty easy to fix and after that my app worked perfectly. The only issue I ran into was that my buttons were not showing up on my mobile device but they were showing up fine on the web version. It turns out there was an issue with displaying a flexbox on the mobile version. I assume this was probably an issue with my own styling but I was able to get around it by removing display flex from the button container. 

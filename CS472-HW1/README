@@ -1,0 +1,13 @@
+Aidan Leuck
+CS472 HW1 - Composition
+Jim Buffenbarger
+February 28 2021
+
+This assignment implements Row, Column, Rectangle, and Character using strategy and composition design patterns. It uses a simple compositor to format the document so that glyph formatting is not tightly coupled with the formatting algorithm.
+
+To Compile
+javac src/* src/Windows/* src/Glyph/*
+
+To Run type 
+java Main
+

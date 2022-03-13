@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "ListAssignment",
+    "slug": "ListAssignment",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.aidaleuck.test"
+    },
+    "ios": {
+      "bundleIdentifier": "com.aidanleuck.listapp"
+    }
+  },
+  "name": "ListAssignment"
+}
