@@ -15,6 +15,12 @@ public abstract class CompositeGlyph extends Glyph {
 		childList = new ArrayList<Glyph>();
 	}
 
+    @Override
+    public void insert(Window window, Glyph glyph){
+        glyph.setParent(this);
+        childList.add(glyph);
+    }
+
 	@Override
 	public void insert(Window window, Glyph glyph, int position){
 

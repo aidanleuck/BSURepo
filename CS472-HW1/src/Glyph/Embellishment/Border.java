@@ -6,23 +6,24 @@ import Window.Window;
 
 public class Border extends Embellishment{
 
-    private int borderWidth;
-    public Border(int bWidth){
-        borderWidth = bWidth;
+    private int strokeWeight;
+    public Border(int bWidth, Glyph glyph, Window window){
+        super(glyph, window);
+        strokeWeight = bWidth;
     }
 
     @Override
     public Point createCursor(){
         Point newCursor = super.createCursor();
-        newCursor.setCoords(newCursor.getX() + borderWidth, newCursor.getY() + borderWidth);
+        newCursor.setCoords(newCursor.getX() + strokeWeight, newCursor.getY() + strokeWeight);
         return newCursor;
     }
 
     @Override
     public void setSize(Window window) {
         // Calculates the width based off the window
-        int width = borderWidth*2;
-        int height = borderWidth*2;
+        int width = strokeWeight*2;
+        int height = strokeWeight*2;
 
         // Loops through children (should only be one)
         for(Glyph child: childList){
@@ -35,7 +36,7 @@ public class Border extends Embellishment{
     @Override
     public void draw(Window window){
         Point point = getBounds().getPoint();
-        window.addBorder(point.getX(), point.getY(), point.getX() + getBounds().getWidth(), point.getY() + getBounds().getHeight(), borderWidth);
+        window.addBorder(point.getX(), point.getY(), point.getX() + getBounds().getWidth(), point.getY() + getBounds().getHeight(), strokeWeight);
         for(Glyph child: childList){
             child.draw(window);
         }

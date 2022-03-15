@@ -50,6 +50,16 @@ public abstract class Glyph {
     }
 
     /**
+     * Appends a child to the end of a composite glyph, by default throws an exception for leafs.
+     * @param window - Interface to interact with swing window.
+     * @param glyph - A object of type glyph
+     * @throws Exception - Throws exception on leaf nodes.
+     */
+    public void insert(Window window, Glyph glyph) throws Exception{
+        throw new Exception("Can't insert on leaf!");
+    }
+
+    /**
      * Removes a child from a composite glyph, by default throws an exception for leafs.
      * @param window - Interface to interact with swing window
      * @param glyph - The glyph to remove

@@ -10,6 +10,10 @@ public abstract class Composition extends CompositeGlyph {
 
 	public Composition() {
 		super();
+
+        // Uses a default compositor implementation (can still be modified at runtime)
+        compositor = new SimpleCompositor();
+        compositor.setComposition(this);
 	}
 
 	/**
@@ -25,10 +29,20 @@ public abstract class Composition extends CompositeGlyph {
 	public void insert(Window window, Glyph glyph, int position) {
 		super.insert(window, glyph, position);
 
-		// Compsoitions should format after inserting
+		// Compositions should format after inserting
 		Glyph root = findRoot();
 		root.composeGlyph(window);
 	}
+
+    @Override
+    public void insert(Window window, Glyph glyph){
+        super.insert(window, glyph);
+
+        // Compositions should format after inserting
+        Glyph root = findRoot();
+        root.composeGlyph(window);
+
+    }
 
 	/**
 	 * Adjusts the cursor in the x,y direction depending on the formatting of a composition
@@ -37,7 +51,6 @@ public abstract class Composition extends CompositeGlyph {
 	 * @param child  - The child thats bounds will update the cursor
 	 */
 	public abstract void adjustCursor(Point cursor, Glyph child);
-
 
 	@Override
 	public void composeGlyph(Window window) {

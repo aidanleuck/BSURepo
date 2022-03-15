@@ -63,5 +63,4 @@ public class Bounds {
 		this.height = height;
 		this.width = width;
 	}
-
 }
