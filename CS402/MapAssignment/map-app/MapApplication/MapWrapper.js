@@ -8,7 +8,7 @@ const MapWrapper = () =>{
 
     return(
         <View>
-        <Map markers = {markers}></Map>
+        <Map markers = {markers} setMarkers={setMarkers}></Map>
         <MapList markers = {markers} setMarkers= {setMarkers}></MapList>
         </View>
     )

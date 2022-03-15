@@ -115,7 +115,9 @@ const VirtualList = (props) => {
    * Deletes selected items
    */
   function deleteItems() {
-    setList(list.filter((listItem) => !listItem.selected))
+    const newList = list.filter((listItem) => !listItem.selected);
+    setList(newList);
+    props.setMarkers(newList);
   }
   async function addButtonHandler(){
     let copyList = [...list];
@@ -192,7 +194,7 @@ const VirtualList = (props) => {
     let loadedList = await remoteList.loadRemoteList(url.toString());
     let newList = [];
     for(const item of loadedList){
-      newList = newList.concat(addItem(list, item))
+      newList.push(item);
     }
     setList(newList);
     props.setMarkers(newList);

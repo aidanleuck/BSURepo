@@ -1,12 +1,13 @@
 Aidan Leuck
-CS472 HW1 - Composition
+CS472 HW2 - Decorator
 Jim Buffenbarger
-February 28 2021
+March 14 2021
 
-This assignment implements Row, Column, Rectangle, and Character using strategy and composition design patterns. It uses a simple compositor to format the document so that glyph formatting is not tightly coupled with the formatting algorithm.
+This assignment expands on the previous assignment and implements two new types of Glyph's called embellishments. The two embellishments that were implemented were scrollbar and border.
+Embellishments are implemented using the decorator pattern as described in the textbook.
 
 To Compile
-javac src/* src/Windows/* src/Glyph/*
+javac src/* src/Windows/* src/Glyph/* src/Embellishment/*
 
 To Run type 
 java Main
