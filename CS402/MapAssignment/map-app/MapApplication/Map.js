@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
 const MapList = (props) => {
   let mapref = React.createRef();
   // the state variables that keep our data available for the User Interface.
-  const [list, setlist] = useState([]);
   const [myLocation, setLocation] = useState(null);
 
   /**
@@ -42,7 +41,7 @@ const MapList = (props) => {
     // Wait for list to load
     if (props.loaded) {
       if (!myLocation) {
-        const currLocationInfo = await geolocation.getCurrentLocation(setLocation);
+        const currLocationInfo = await geolocation.getCurrentLocation();
         setLocation(currLocationInfo);
       }
       else {
@@ -56,7 +55,7 @@ const MapList = (props) => {
     else {
       // If location hasn't been grabbed then grab it
       if (!myLocation) {
-        const currLocationInfo = await geolocation.getCurrentLocation(setLocation);
+        const currLocationInfo = await geolocation.getCurrentLocation();
         setLocation(currLocationInfo);
       }
     }

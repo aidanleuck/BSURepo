@@ -105,7 +105,6 @@ const VirtualList = (props) => {
 
     // Toggles black/white background color depending on selection
     const [backgroundColor, color] = item.selected ? ['black', 'white'] : ['white', 'black'];
-    console.log(item);
     return (
       <Item
         key={index}
