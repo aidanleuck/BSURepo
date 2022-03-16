@@ -30,12 +30,7 @@ let geoLocation = {
                 let locationInfo = await Geocoder.from(latitude, longitude);
                 let locationName = locationInfo.results[0].formatted_address;
 
-                const positionMarker = <Marker
-                coordinate={{ latitude: latitude, longitude: longitude }}
-                title={locationName}
-                />
-                setLocation(positionMarker);
-
+                locationResult = {key: locationName, data:{latitude: latitude, longitude: longitude}};
             }
             catch(err){
                 console.log("Error occured reading location!" + err);

@@ -30,36 +30,76 @@ const styles = StyleSheet.create({
 
 // declare our Virtual List App object.
 const MapList = (props) => {
-
+  let mapref = React.createRef();
   // the state variables that keep our data available for the User Interface.
   const [list, setlist] = useState([]);
-  const [mylocation, setLocation] = useState();
-  const [mypos, setPosition] = useState();
-  useEffect(async () => {
-   let locationInfo = await geolocation.getCurrentLocation(setLocation);
- }, [])
+  const [myLocation, setLocation] = useState(null);
 
+  /**
+   * Handles getting location, waits for the list to be loaded before executing
+   */
+  useEffect(async () => {
+    // Wait for list to load
+    if (props.loaded) {
+      if (!myLocation) {
+        const currLocationInfo = await geolocation.getCurrentLocation(setLocation);
+        setLocation(currLocationInfo);
+      }
+      else {
+        let currMarkers = [...props.markers];
+        if (currMarkers.filter((item) => item.key === myLocation.key).length === 0) {
+          currMarkers.push(myLocation);
+          props.setMarkers(currMarkers);
+        }
+      }
+    }
+    else {
+      // If location hasn't been grabbed then grab it
+      if (!myLocation) {
+        const currLocationInfo = await geolocation.getCurrentLocation(setLocation);
+        setLocation(currLocationInfo);
+      }
+    }
+  }, [props.loaded, myLocation])
+
+  // Wait for changes to the last selected property
+  useEffect(() => {
+    if(props.loaded){
+      if(props.lastSelected){
+        // Animate to the region once the change has occurred
+        mapref.animateToRegion({
+          latitude: props.lastSelected.data.latitude, 
+          longitude: props.lastSelected.data.longitude, 
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421
+         }, 2000)
+      }
+    }
+  }, [props.lastSelected])
+
+  /**
+   * Renders a marker object
+   * @param {*} marker - Marker to render
+   * @returns marker
+   */
   const renderMarker = (marker) => {
-    return(
-    <Marker
-      coordinate={{ latitude: marker.data.latitude, longitude: marker.data.longitude }}
-      title={marker.key}
-    />
+    return (
+      <Marker
+        coordinate={{ latitude: marker.data.latitude, longitude: marker.data.longitude }}
+        title={marker.key}
+      />
     );
   }
 
-  const mapref = React.createRef();
+  // Screen width, screen height
   const SCREEN_WIDTH = useWindowDimensions().width;
   const SCREEN_HEIGHT = useWindowDimensions().height;
   var smaps = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT / 2 }
-  var mymap = <MapView ref={mapref} style={smaps} >
-    {mylocation}
+  var mymap = <MapView ref={(mapView) => { mapref = mapView; }} style={smaps} >
     {props.markers.map((marker) => renderMarker(marker))}
   </MapView >
 
-
   return (mymap)
-
 }
 
 

@@ -5,11 +5,13 @@ import MapList from './List';
 
 const MapWrapper = () =>{
     const [markers, setMarkers] = useState([]);
+    const [loaded, setLoaded] = useState(false);
+    const [lastSelected, setLastSelected] = useState({})
 
     return(
-        <View>
-        <Map markers = {markers} setMarkers={setMarkers}></Map>
-        <MapList markers = {markers} setMarkers= {setMarkers}></MapList>
+        <View style={{flex:1}}>
+            <Map markers = {markers} setMarkers={setMarkers} loaded={loaded} lastSelected={lastSelected}></Map>
+            <MapList markers = {markers} setMarkers= {setMarkers} setLoaded={setLoaded} setLastSelected={setLastSelected}></MapList>
         </View>
     )
 }

@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Button, TextInput, VirtualizedList} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Button, TextInput, VirtualizedList, StatusBar, SafeAreaView } from 'react-native';
 import remoteList from './Helpers/remoteList'
 import geoLocator from './Helpers/geolocation'
 
-// Styles 
+// List styles
 const styles = StyleSheet.create({
   innerButton: {
     marginRight: 10,
     marginTop: 10,
     marginBottom: 0,
     width: 90,
+  },
+  container:{
+    flex:1,
+    marginTop: StatusBar.currentHeight
   },
   utilButtons:{
     marginRight: 10,
@@ -19,6 +23,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
+    width:"100%",
     backgroundColor: 'orange',
     alignItems: 'center',
     justifyContent: 'center',
@@ -49,8 +54,6 @@ const styles = StyleSheet.create({
   }
 });
 
-let dataList = [];
-
 /**
  * Describes an item component
  * @param {*} item - item object containing key and selected
@@ -66,44 +69,48 @@ const Item = ({ item, onPress, backgroundColor, textColor }) => (
 );
 
 /**
- * Builds up a FlatList
- * @returns A Flatlist
+ * Builds up a Virutal List
+ * @returns A Virtual list
  */
 const VirtualList = (props) => {
-
-  // States
-  const [list, setList] = useState([]);
   useEffect(async () => {
     await loadButtonHandler();
+    props.setLoaded(true);
   }, []);
- 
+
+  // Lets reassign the set list and list to the prop sent in from parent
+  const [list, setList] = [props.markers, props.setMarkers];
   const [text, onChangeText] = useState("Search a Location!")
 
 
   // Toggles an item between selected and not selected
   // key : key in list to find
-  function toggleItem(key) {
-    const newList = list.map((listItem) => {
-      if (listItem.key === key) {
-        listItem.selected = !listItem.selected;
-      }
-      return listItem;
-    })
+  function toggleItem(index) {
+    const newList = [...list];
+    let listItem = newList[index];
+    if (!listItem.selected) {
+      props.setLastSelected(listItem);
+    }
+    listItem.selected = !listItem.selected;
     setList(newList);
   }
+
+
 
   /**
    * Describes how an item should be rendered
    * @param {*} item item object from array
    */
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
 
     // Toggles black/white background color depending on selection
     const [backgroundColor, color] = item.selected ? ['black', 'white'] : ['white', 'black'];
+    console.log(item);
     return (
       <Item
+        key={index}
         item={item}
-        onPress={() => toggleItem(item.key)}
+        onPress={() => toggleItem(index)}
         backgroundColor={{ backgroundColor }}
         textColor={{ color }}>
       </Item>
@@ -117,58 +124,62 @@ const VirtualList = (props) => {
   function deleteItems() {
     const newList = list.filter((listItem) => !listItem.selected);
     setList(newList);
-    props.setMarkers(newList);
   }
-  async function addButtonHandler(){
+  async function addButtonHandler() {
     let copyList = [...list];
     let prevLength = copyList.length;
     const locationData = await geoLocator.getLocation(text)
 
-    if(locationData != null){
+    if (locationData != null) {
       let newList = addLocation(text, locationData);
 
-      if(prevLength === newList.length){
+      if (prevLength === newList.length) {
         alert("Duplicate Location")
       }
     }
-    else{
+    else {
       alert("Failed to find location!");
     }
   }
 
-    /**
-   * Adds an item to the lsitf
-   */
-    function addItem(list, addItem) {
-      let item = {
-        key: addItem.key,
-        selected: false,
-        data: addItem.data
-      }
-      // Check for duplicate entries
-      let count = list.filter((listItem) => listItem.key === addItem.key).length
-  
-      // If no duplicates
-      if (!count) {
-  
-        // Find the first selected index
-        let addIndex = list.findIndex((listItem) => listItem.selected)
-  
-        // If there is a selected index then keep same value otherwise just add to 0
-        addIndex = addIndex >= 0 ? addIndex : 0;
-  
-        // Splice to add item into the array
-        list.splice(addIndex, 0, item);
-      }
-      return list;
+  /**
+ * Adds an item to the lsitf
+ */
+  function addItem(list, addItem) {
+    let item = {
+      key: addItem.key,
+      selected: false,
+      data: addItem.data
     }
+    // Check for duplicate entries
+    let count = list.filter((listItem) => listItem.key === addItem.key).length
 
-  function addLocation(locationString, locationData) { 
+    // If no duplicates
+    if (!count) {
+
+      // Find the first selected index
+      let addIndex = list.findIndex((listItem) => listItem.selected)
+
+      // If there is a selected index then keep same value otherwise just add to 0
+      addIndex = addIndex >= 0 ? addIndex : 0;
+
+      // Splice to add item into the array
+      list.splice(addIndex, 0, item);
+    }
+    return list;
+  }
+
+  /**
+   * Adds a location
+   * @param {*} locationString 
+   * @param {*} locationData 
+   * @returns 
+   */
+  function addLocation(locationString, locationData) {
     let locationList = [...list];
 
     const createdLocationData = { key: locationString, data: { longitude: locationData.lng, latitude: locationData.lat } }
     locationList = addItem(locationList, createdLocationData);
-    console.log(locationList);
     setList(locationList);
     props.setMarkers(locationList);
 
@@ -179,7 +190,7 @@ const VirtualList = (props) => {
   const getItemCount = (data) => list.length;
 
   // Gets the item to return to the virtual list so it can perform a render
-  const getItem = (index, key) => list[key];
+  const getItem = (data, index) => list[index];
 
   /**
    * Handler for load button that sets server endpoint and proceeds to load data in the list
@@ -193,11 +204,10 @@ const VirtualList = (props) => {
 
     let loadedList = await remoteList.loadRemoteList(url.toString());
     let newList = [];
-    for(const item of loadedList){
+    for (const item of loadedList) {
       newList.push(item);
     }
     setList(newList);
-    props.setMarkers(newList);
   }
 
   /**
@@ -223,6 +233,9 @@ const VirtualList = (props) => {
 
   }
 
+  /**
+   * List of buttons
+   */
   const buttons = <View><View style={styles.buttonContainer}>
     <View style={styles.innerButton}>
       <Button style title="+"
@@ -233,14 +246,14 @@ const VirtualList = (props) => {
         onPress={deleteItems} />
     </View>
     <View style={styles.innerButton}>
-    <Button title="Load List"
-          onPress={loadButtonHandler} />
+      <Button title="Load List"
+        onPress={loadButtonHandler} />
     </View>
     <View style={styles.innerButton}>
-    <Button title="Save List"
-          onPress={saveButtonHandler} />
+      <Button title="Save List"
+        onPress={saveButtonHandler} />
     </View>
-    </View>
+  </View>
 
     <View style={styles.textContainer}>
       <TextInput style={styles.textField}
@@ -253,19 +266,22 @@ const VirtualList = (props) => {
   /**
    * Main virtual list render method
    */
-  const VirtualList = 
-      <View>
+  const VirtualList =
+      <SafeAreaView style={styles.container}>
       {buttons}
       <VirtualizedList
-        data={dataList}
-        persistentScrollbar={true}
-        initialNumToRender={12}
+        data={list}
+        initialNumToRender={4}
         getItemCount={getItemCount}
         getItem={getItem}
         keyExtractor={(item, index) => index}
         renderItem={renderItem}
       />
-      </View>
+      </SafeAreaView>
+    
+
+
+
   return (VirtualList)
 }
 
