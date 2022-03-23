@@ -1,0 +1,14 @@
+Aidan Leuck
+CS472 HW2 - Decorator
+Jim Buffenbarger
+March 14 2021
+
+This assignment expands on the previous assignment and implements two new types of Glyph's called embellishments. The two embellishments that were implemented were scrollbar and border.
+Embellishments are implemented using the decorator pattern as described in the textbook.
+
+To Compile
+javac src/* src/Windows/* src/Glyph/* src/Embellishment/*
+
+To Run type 
+java Main
+
