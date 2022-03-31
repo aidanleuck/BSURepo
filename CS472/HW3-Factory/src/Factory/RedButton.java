@@ -1,12 +1,15 @@
 package Factory;
 
 import Glyph.Glyph;
-import Glyph.Point;
 import Window.Window;
 
-final class RedButton extends Button {
+/**
+ * Button with red look and feel.
+ */
+class RedButton extends Button {
     public RedButton(Glyph glyph, Window window){
         super(glyph, window);
+        // Sets color to red.
         setColor("Red");
     }
 }

@@ -5,17 +5,22 @@ import Glyph.Glyph;
 import Window.Window;
 import Glyph.Point;
 
-public abstract class Label extends Embellishment {
-    String color;
+/**
+ * Defines a label glyph.
+ */
+abstract class Label extends Embellishment {
+    private String color;
     public Label(Glyph glyph, Window window) {
         super(glyph, window);
     }
 
     @Override
     public void draw(Window window) {
+        // Get size of label and draws it
         Point point = getBounds().getPoint();
         window.drawLabel(point.getX(), point.getY(), getBounds().getWidth(), getBounds().getHeight(), color);
 
+        // Draws child of label.
         for(Glyph child: childList){
             child.draw(window);
         }
@@ -28,6 +33,7 @@ public abstract class Label extends Embellishment {
         int height = 0;
 
         // Loops through children (should only be one)
+        // Sets size based on size of child.
         for(Glyph child: childList){
             width+= child.getBounds().getWidth();
             height+= child.getBounds().getHeight();
@@ -37,9 +43,13 @@ public abstract class Label extends Embellishment {
 
     @Override
     public void adjustCursor(Point cursor, Glyph child) {
-
+        // Cursor doesn't need to adjust since size is equal to child.
     }
 
+    /**
+     * Sets color of the label
+     * @param color - Color to set button to.
+     */
     public void setColor(String color){
         this.color = color;
     }

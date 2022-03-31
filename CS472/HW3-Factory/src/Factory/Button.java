@@ -1,15 +1,15 @@
 package Factory;
 
-import Glyph.Composition;
 import Glyph.Embellishment.Embellishment;
 import Glyph.Glyph;
 import Window.Window;
 import Glyph.Point;
-import Glyph.Bounds;
 
-public abstract class Button extends Embellishment {
-    String color;
-
+/**
+ * Defines a button glyph.
+ */
+abstract class Button extends Embellishment {
+    private String color;
     public Button(Glyph glyph, Window window) {
         super(glyph, window);
     }
@@ -31,6 +31,7 @@ public abstract class Button extends Embellishment {
         int height = 0;
 
         // Loops through children (should only be one)
+        // Sets size based off size of child
         for(Glyph child: childList){
             width+= child.getBounds().getWidth();
             height+= child.getBounds().getHeight();
@@ -40,9 +41,14 @@ public abstract class Button extends Embellishment {
 
     @Override
     public void adjustCursor(Point cursor, Glyph child) {
-
+        // Cursor does not need to be adjusted since a button
+        // is the same size as child.
     }
 
+    /**
+     * Sets color of the button
+     * @param color - Color of the button to be set.
+     */
     public void setColor(String color){
         this.color = color;
     }

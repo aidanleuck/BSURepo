@@ -13,6 +13,7 @@ public class Main {
         try{
             WidgetFactory fact = WidgetFactory.instance();
             WidgetFactory fact2 = WidgetFactory.instance();
+
             Glyph root = new Column();
 
             Glyph row = new Row();
@@ -61,8 +62,7 @@ public class Main {
 
             buttonRow.insert(window,bigP);
             buttonRow.insert(window, bigQ);
-
-            Button button = fact.createButton(buttonRow, window);
+            Glyph button = fact.createButton(buttonRow, window);
 
             root.insert(window, button);
 
