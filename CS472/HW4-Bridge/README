@@ -1,0 +1,23 @@
+Aidan Leuck
+CS472 HW3 - Factory & Singleton
+Jim Buffenbarger
+March 30 2021
+
+This assignment makes use of the Factory and Singleton pattern in order to allow
+A user to choose between two different looks and feels for two Glyphs, Button and Label.
+By using the factory a user is able to create buttons and labels and choose the color,
+based off an environment variable that is set. The singleton pattern is used to prevent
+users from creating multiple instances of the factory throughout the program.
+
+To Compile
+javac **/*.java -d .
+
+To Run:
+
+With Green Look and Feel (Green is also default if no env variable is set):
+export Feel="Green"; java Main
+
+With Red Look and Feel:
+export Feel="Red"; java Main
+
+

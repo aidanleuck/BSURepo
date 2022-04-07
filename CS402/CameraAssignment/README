@@ -1,0 +1,7 @@
+Aidan Leuck
+CS402 HW4 Camera Assignment
+Steven Cutchin
+April 5 2021
+
+This assignment uses a camera and a list to allow a user to snap a picture from their camera. Once a picture has been taken a small preview appears in the bottom right corner of the camera view. Additionally a picture and its associated thumbnail is appended to the list below the camera. A user can then choose to share, the image, delete the image, or save the image to their gallery.
+
