@@ -1,0 +1,24 @@
+Aidan Leuck
+CS472 HW4 - Bridge
+Jim Buffenbarger
+April 6 2021
+
+This assignment makes use of the Factory, Singleton, and Bridge pattern to allow Lexi to swap different window implementations at run time. The client can set an environment variable in 
+Order to choose between either AWT, or Swing. The Factory pattern is used to create instances 
+of window implementations. Singleton pattern is used to ensure only one Window factory is created
+Throughout the program at one time. The bridge pattern is used to allow us to aggregate both
+Swing and AWT into a common interface as well as implement Glyph specific code on the left side of 
+Bridge.
+
+To Compile
+javac **/*.java -d .
+
+To Run:
+
+With AWT 
+export Window="Awt"; java Main
+
+With Swing (Also default if no env variable set)
+export Window="Swing"; java Main
+
+
