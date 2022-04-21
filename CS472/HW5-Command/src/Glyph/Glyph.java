@@ -1,7 +1,10 @@
 package Glyph;
-import Command.Command;
+import Command.*;
 import Window.Window;
 
+/**
+ * Handler in Chain of Responsibility
+ */
 public abstract class Glyph {
     private Bounds bounds;
     private Glyph parent;

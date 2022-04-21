@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * Defines a composite glyph which is a glyph that has children
+ * Concrete handler chain of responsibility
  */
 public abstract class CompositeGlyph extends Glyph {
 	protected List<Glyph> childList;

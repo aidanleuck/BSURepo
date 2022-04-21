@@ -8,6 +8,7 @@ import Glyph.Glyph;
  * Abstract window implementation for Lexi
  * Abstraction class in (Bridge 151)
  * Receiver class in Command(233)
+ * Client in Chain Of Responsibility
  */
 public abstract class Window {
     // Holds reference to the window implementation to use
@@ -158,6 +159,7 @@ public abstract class Window {
      * @param y - y coordinate pressed
      */
     public void click(int x, int y) {
+        // Uses chain of responsibility to find glyph.
         Command command = glyph.click(x, y);
         if(command != null){
             try {
