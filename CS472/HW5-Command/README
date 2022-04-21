@@ -1,24 +1,17 @@
 Aidan Leuck
-CS472 HW4 - Bridge
+CS472 HW5 - Command & Prototype
 Jim Buffenbarger
-April 6 2021
+April 20 2022
 
-This assignment makes use of the Factory, Singleton, and Bridge pattern to allow Lexi to swap different window implementations at run time. The client can set an environment variable in 
-Order to choose between either AWT, or Swing. The Factory pattern is used to create instances 
-of window implementations. Singleton pattern is used to ensure only one Window factory is created
-Throughout the program at one time. The bridge pattern is used to allow us to aggregate both
-Swing and AWT into a common interface as well as implement Glyph specific code on the left side of 
-Bridge.
+This assignment uses the command and prototype pattern to implement user interaction on the Lexi window. There are two ways of interacting with commands, the first being via pressing a key. The available commands are increment font (i) decrement font (d), undo (u), and redo (r). You can also perform a command by clicking on buttons in Lexi. Any of the commands mentioned above can be tied to a button in addition to the set font size command. The Prototype pattern is used to create copies of our Commands to save them in a command history object so undo/redo can be implemented. Command history also uses the singleton pattern to prevent multiple instances from being created.
 
 To Compile
-javac **/*.java -d .
+$ javac **/*.java -d .
 
 To Run:
 
-With AWT 
-export Window="Awt"; java Main
+$ java Main
 
-With Swing (Also default if no env variable set)
-export Window="Swing"; java Main
+
 
 
