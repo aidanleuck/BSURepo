@@ -1,5 +1,6 @@
 package Factory;
 
+import Command.Command;
 import Glyph.Embellishment.Embellishment;
 import Glyph.Glyph;
 import Window.Window;
@@ -10,8 +11,20 @@ import Glyph.Point;
  */
 abstract class Button extends Embellishment {
     private String color;
+    private Command command;
+
     public Button(Glyph glyph, Window window) {
         super(glyph, window);
+    }
+
+    @Override
+    public void setCommand(Command command){
+        this.command = command;
+    }
+
+    @Override
+    protected Command getCommand(){
+        return command;
     }
 
     @Override

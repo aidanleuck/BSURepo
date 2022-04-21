@@ -7,6 +7,7 @@ import Glyph.Glyph;
 /**
  * Abstract window implementation for Lexi
  * Abstraction class in (Bridge 151)
+ * Receiver class in Command(233)
  */
 public abstract class Window {
     // Holds reference to the window implementation to use
@@ -134,41 +135,60 @@ public abstract class Window {
         _keyMap = kMap;
     }
 
+    /**
+     * Performs a command when a key is pressed
+     * @param c - Character pressed
+     */
     public void key(char c) {
         if(_keyMap != null){
             Command command = _keyMap.get(c);
             if(command != null){
                 try {
-                    command.execute(this);
-                    if (command.isUndoable()) {
-                        Command commandCopy = command.cloneCommand();
-                        CommandHistory history = CommandHistory.getHistory();
-                        history.push(commandCopy);
-                    }
+                    CommandHistory history = CommandHistory.getHistory();
+                    history.push(this, command);
                 }
                 catch (IndexOutOfBoundsException ex){}
             }
         }
     }
+
+    /**
+     * Performs a command on a glyph when clicked
+     * @param x - x coordinate pressed
+     * @param y - y coordinate pressed
+     */
     public void click(int x, int y) {
         Command command = glyph.click(x, y);
         if(command != null){
-            command.execute(this);
-            if(command.isUndoable()){
-                Command commandCopy = command.cloneCommand();
+            try {
                 CommandHistory history = CommandHistory.getHistory();
-                history.push(commandCopy);
+                history.push(this, command);
             }
+            catch (IndexOutOfBoundsException ex){}
         }
     }
 
+    /**
+     * Repaints the window
+     */
     public void repaint(){
+        // If you are repainting it is likely we will need to recompose.
         glyph.composeGlyph(this);
         _windowImp.repaint();
     }
+
+    /**
+     * Gets the font size of the window
+     * @return - font size
+     */
     public int getFontSize(){
         return _windowImp.getFontSize();
     }
+
+    /**
+     * Sets the font size of the window
+     * @param fontSize - Font size to set the window to
+     */
     public void setFontSize(int fontSize){
         _windowImp.setFontSize(fontSize);
         draw();

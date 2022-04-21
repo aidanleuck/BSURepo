@@ -5,7 +5,6 @@ import Window.Window;
 public abstract class Glyph {
     private Bounds bounds;
     private Glyph parent;
-    private Command command;
 
     /**
      * Tells a glyph how it should draw itself
@@ -29,6 +28,12 @@ public abstract class Glyph {
      */
     public void composeGlyph(Window window){};
 
+    /**
+     * Finds a glyph that was clicked
+     * @param x - x coordinate of the click
+     * @param y - y coordinate of the click.
+     * @return Glyph that was clicked
+     */
     protected Glyph find(int x, int y){
         Point point = new Point();
         point.setCoords(x, y);
@@ -40,6 +45,12 @@ public abstract class Glyph {
         return glyph;
     }
 
+    /**
+     * Gets the command of a glyph that was clicked
+     * @param x - x coordinate of the click
+     * @param y - y coordinate of the click
+     * @return the command of the glyph that was clicked
+     */
     public Command click(int x, int y){
        Glyph foundGlyph = find(x, y);
        Command command = null;
@@ -49,12 +60,18 @@ public abstract class Glyph {
        return command;
     }
 
-    public void setCommand(Command command){
-        this.command = command;
-    }
+    /**
+     * Sets the command of a glyph
+     * @param command - Command to set the glyph to
+     */
+    public void setCommand(Command command){}
 
+    /**
+     * Gets the command for the glyph
+     * @return - command for the glyph.
+     */
     protected Command getCommand(){
-        return command;
+        return null;
     }
 
     /**

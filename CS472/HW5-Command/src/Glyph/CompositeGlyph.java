@@ -24,22 +24,21 @@ public abstract class CompositeGlyph extends Glyph {
 	public Glyph find(int x, int y){
 		Point point = new Point();
 		point.setCoords(x, y);
-		Glyph commandGlyph = null;
 
 		if(getBounds().intersects(point)){
 			if(this.getCommand() != null){
-				commandGlyph = this;
+				return this;
 			}
 			for(Glyph childGlyph: childList){
 				Glyph foundGlyph = childGlyph.find(x, y);
 				if(foundGlyph != null){
 					if(foundGlyph.getCommand() != null){
-						commandGlyph = foundGlyph;
+						return foundGlyph;
 					}
 				}
 			}
 		}
-		return commandGlyph;
+		return null;
 	}
 
 	@Override

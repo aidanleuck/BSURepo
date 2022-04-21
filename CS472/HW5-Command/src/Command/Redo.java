@@ -2,8 +2,15 @@ package Command;
 
 import Window.Window;
 
-public class Redo extends Command{
+/**
+ * ConcreteCommand (Command 233)
+ * Concrete Prototype (Prototype 117)
+ * Redos a command
+ */
+public class Redo implements Command{
+
     @Override
+    // Un execute is empty since it can't be undone.
     public void unExecute(Window window) {
 
     }
@@ -11,11 +18,12 @@ public class Redo extends Command{
     @Override
     public void execute(Window window) {
         CommandHistory history = CommandHistory.getHistory();
-        Command redoCommand = history.redoCommand();
-        redoCommand.execute(window);
+        // Redos the command
+        history.redoCommand(window);
     }
 
     @Override
+    // Can't be undone
     public boolean isUndoable() {
         return false;
     }
@@ -23,6 +31,6 @@ public class Redo extends Command{
 
     @Override
     public Command cloneCommand() {
-        return null;
+        return this;
     }
 }
