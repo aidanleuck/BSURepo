@@ -1,9 +1,9 @@
 Aidan Leuck
-CS472 HW5 - Command & Prototype
+CS472 HW6 - Iterator & Visitor
 Jim Buffenbarger
-April 20 2022
+April 29 2022
 
-This assignment uses the command and prototype pattern to implement user interaction on the Lexi window. There are two ways of interacting with commands, the first being via pressing a key. The available commands are increment font (i) decrement font (d), undo (u), and redo (r). You can also perform a command by clicking on buttons in Lexi. Any of the commands mentioned above can be tied to a button in addition to the set font size command. The Prototype pattern is used to create copies of our Commands to save them in a command history object so undo/redo can be implemented. Command history also uses the singleton pattern to prevent multiple instances from being created.
+To make our glyph classes more encapsulate we decided to use iterators to abstract the type of container holding our children. This was done through a list iterator (since internally all glyphs use an ArrayList). We also wanted a way to print out all the words in a document, this involved the use of iterator and the visitor pattern. We created a new pre order iterator that would traverse through each glyph in the document and created a Command called WordFinder that would actually visit each Glyph returned. We also used a concrete visitor called WordVisitor that would hold all the words during traversal. Once traversal ends the words are printed out to the console.
 
 To Compile
 $ javac **/*.java -d .
